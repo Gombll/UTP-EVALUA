@@ -1,0 +1,33 @@
+{
+  "$schema": "https://angular.io/config/schema.json",
+  "version": 1,
+  "projects": {
+    "utp-evalua-frontend": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/utp-evalua-frontend",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [],
+            "styles": ["src/styles.css"],
+            "scripts": []
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "utp-evalua-frontend:build"
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "utp-evalua-frontend"
+}
