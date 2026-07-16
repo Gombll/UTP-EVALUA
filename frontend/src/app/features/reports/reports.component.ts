@@ -137,7 +137,31 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadChartData(data: ChartDataPayload): void {
     this.kpis = this.objectEntries(data['kpis']);
     this.chartPanels = this.buildChartPanels(data);
+    this.updateVisibleRankings(data);
     queueMicrotask(() => this.renderCharts());
+  }
+
+  private updateVisibleRankings(data: ChartDataPayload): void {
+    const teachers = this.records(data['ranking_docentes']);
+    const careers = this.records(data['promedio_carreras']);
+
+    if (teachers.length > 0) {
+      this.teachers = teachers.slice(0, 4).map((teacher) => ({
+        name: this.name(teacher),
+        career: this.displayValue(teacher['carrera']),
+        rating: this.numberValue(teacher['promedio']),
+        reviews: this.numberValue(teacher['resenas'])
+      }));
+    }
+
+    if (careers.length > 0) {
+      this.careers = careers.slice(0, 4).map((career) => ({
+        name: this.name(career),
+        faculty: this.displayValue(career['facultad']),
+        rating: this.numberValue(career['promedio']),
+        reviews: this.numberValue(career['resenas'])
+      }));
+    }
   }
 
   private buildChartPanels(data: ChartDataPayload): ChartPanel[] {
@@ -337,7 +361,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   private lineSeries(name: string, data: number[]) {
     return {
       name,
-      type: 'line',
+      type: 'line' as const,
       smooth: true,
       data,
       symbolSize: 8,

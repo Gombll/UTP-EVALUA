@@ -343,7 +343,7 @@ class AnalyticsReportService:
     @staticmethod
     def _monthly_status(df: pd.DataFrame) -> list[dict]:
         statuses = ["visible", "reportada", "oculta"]
-        current_month = pd.Timestamp.utcnow().to_period("M")
+        current_month = pd.Timestamp.now().to_period("M")
         months = pd.period_range(end=current_month, periods=6, freq="M")
         rows = {
             str(month): {"mes": str(month), "visible": 0, "reportada": 0, "oculta": 0, "total": 0}

@@ -237,7 +237,7 @@ pre {
   }
 
   .charts-header,
-  .chart-card figcaption {
+  .chart-card-head {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -262,6 +262,7 @@ pre {
   padding: 24px;
   margin-bottom: 24px;
   border-radius: 8px;
+  overflow: hidden;
 }
 
 .charts-header {
@@ -295,10 +296,41 @@ pre {
   font-weight: 800;
 }
 
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.kpi-card {
+  display: grid;
+  gap: 6px;
+  min-height: 78px;
+  padding: 14px;
+  background: var(--utp-surface-container-low);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.kpi-card small {
+  color: var(--utp-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.kpi-card strong {
+  color: var(--utp-jet);
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 800;
+}
+
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 22px;
 }
 
 .chart-card {
@@ -306,28 +338,35 @@ pre {
   gap: 12px;
   min-width: 0;
   margin: 0;
-}
-
-.chart-card img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: contain;
+  padding: 14px;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
 }
 
-.chart-card figcaption {
+.chart-card-head {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  color: var(--utp-on-surface);
-  font-size: 13px;
+  gap: 16px;
+  align-items: flex-start;
 }
 
-.chart-card figcaption span {
+.chart-card-head h4 {
+  margin: 0 0 4px;
+  color: var(--utp-jet);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.chart-card-head p {
+  color: var(--utp-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.chart-card-head > span {
+  flex: 0 0 auto;
   padding: 4px 8px;
   color: var(--utp-secondary);
   background: var(--utp-surface-container-low);
@@ -335,6 +374,22 @@ pre {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.echart-host {
+  width: 100%;
+  height: 380px;
+  min-width: 0;
+}
+
+.chart-card:first-child,
+.chart-card:nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+.chart-card:first-child .echart-host,
+.chart-card:nth-child(4) .echart-host {
+  height: 440px;
 }
 
 .admin-grid {
@@ -406,4 +461,21 @@ pre {
   font-size: 15px;
   font-weight: 600;
   color: var(--utp-jet);
+}
+
+@media (max-width: 640px) {
+  .charts-panel,
+  .chart-card {
+    padding: 14px;
+  }
+
+  .echart-host,
+  .chart-card:first-child .echart-host,
+  .chart-card:nth-child(4) .echart-host {
+    height: 300px;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
 }
