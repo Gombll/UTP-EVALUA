@@ -107,16 +107,16 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (data) => this.loadChartData(data),
       error: () => undefined
     });
+    this.recommendationService.recommendations().subscribe({
+      next: (data) => this.appendAdminPayload('Recomendaciones AI', data),
+      error: () => undefined
+    });
     this.service.analytics().subscribe({
-      next: (data) => this.appendAdminPayload('Analytics', data),
+      next: (data) => this.appendAdminPayload('Analytics General', data),
       error: () => undefined
     });
     this.service.prolog().subscribe({
-      next: (data) => this.appendAdminPayload('PySWIP', data),
-      error: () => undefined
-    });
-    this.recommendationService.recommendations().subscribe({
-      next: (data) => this.appendAdminPayload('Recomendaciones', data),
+      next: (data) => this.appendAdminPayload('Prolog Engine (Inferencia)', data),
       error: () => undefined
     });
   }
@@ -249,7 +249,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         id: 'cobertura',
-        title: 'Cobertura de evaluaciones',
+        title: 'Cobertura de evaluations',
         subtitle: 'Detecta docentes y carreras sin resenas visibles.',
         type: 'Barras agrupadas',
         option: this.coverageOption(teacherCoverage, careerCoverage)
@@ -468,6 +468,46 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       return String(value);
     }
     return JSON.stringify(value);
+  }
+
+  isTeacherRecord(item: unknown): boolean {
+    if (!this.isObject(item)) return false;
+    const rec = item as Record<string, unknown>;
+    return Boolean(rec['docente'] || rec['nombre'] || rec['facultad'] || rec['promedio'] !== undefined);
+  }
+
+  getTeacherName(item: unknown): string {
+    if (!this.isObject(item)) return String(item);
+    const rec = item as Record<string, unknown>;
+    return String(rec['docente'] ?? rec['nombre'] ?? 'Docente');
+  }
+
+  getTeacherSubtitle(item: unknown): string {
+    if (!this.isObject(item)) return '';
+    const rec = item as Record<string, unknown>;
+    const fac = rec['facultad'] ? String(rec['facultad']) : '';
+    const car = rec['carrera'] ? String(rec['carrera']) : '';
+    if (fac && car) return `${fac} | ${car}`;
+    return fac || car || '';
+  }
+
+  getTeacherScore(item: unknown): string | null {
+    if (!this.isObject(item)) return null;
+    const rec = item as Record<string, unknown>;
+    if (rec['promedio'] !== undefined) {
+      return `${Number(rec['promedio']).toFixed(1)}/5`;
+    }
+    return null;
+  }
+
+  isPrimitiveArray(arr: unknown[]): boolean {
+    return arr.every((el) => typeof el === 'string' || typeof el === 'number' || typeof el === 'boolean');
+  }
+
+  isComplexDict(value: unknown): boolean {
+    if (!this.isObject(value)) return false;
+    const entries = Object.values(value as Record<string, unknown>);
+    return entries.some((v) => Array.isArray(v) || this.isObject(v));
   }
 
   private records(value: unknown): MetricRecord[] {

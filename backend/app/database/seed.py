@@ -1,5 +1,5 @@
-﻿from app.extensions import db
-from app.models import Career, Faculty, Review, Role, Teacher, User
+from app.extensions import db
+from app.models import Career, Course, Faculty, Review, Role, Teacher, User
 
 
 def seed_database() -> None:
@@ -21,6 +21,33 @@ def seed_database() -> None:
         Career,
         nombre="Administracion",
         facultad_id=business.id,
+    )
+    db.session.flush()
+
+    _get_or_create(
+        Course,
+        nombre="Arquitectura y Diseno de Software",
+        defaults={"codigo": "100000I101", "creditos": 4, "carrera_id": software.id},
+    )
+    _get_or_create(
+        Course,
+        nombre="Pruebas y Calidad de Software",
+        defaults={"codigo": "100000I102", "creditos": 3, "carrera_id": software.id},
+    )
+    _get_or_create(
+        Course,
+        nombre="Bases de Datos Avanzadas",
+        defaults={"codigo": "100000I201", "creditos": 4, "carrera_id": systems.id},
+    )
+    _get_or_create(
+        Course,
+        nombre="Inteligencia de Negocios y Big Data",
+        defaults={"codigo": "100000I202", "creditos": 4, "carrera_id": systems.id},
+    )
+    _get_or_create(
+        Course,
+        nombre="Gestion Estrategica y Finanzas",
+        defaults={"codigo": "100000G301", "creditos": 3, "carrera_id": administration.id},
     )
     db.session.flush()
 

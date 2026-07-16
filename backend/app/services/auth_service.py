@@ -18,10 +18,13 @@ class AuthService:
         if self.users.find_by_email(correo):
             raise BadRequest("El correo ya está registrado.")
 
+        raw_role = str(data.get("role", "")).lower()
+        role = Role.ADMIN if raw_role in ["admin", "administrador"] else Role.STUDENT
+
         user = User(
             nombres=nombres,
             correo=correo,
-            role=data.get("role", Role.STUDENT),
+            role=role,
         )
         user.password = data["password"]
         created = self.users.create(

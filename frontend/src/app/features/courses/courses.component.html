@@ -1,0 +1,64 @@
+<section class="catalog-page">
+  <header class="catalog-hero">
+    <p class="eyebrow">Catálogo UTP</p>
+    <h1>Cursos Académicos y Mallas Curriculares</h1>
+    <p>Explora los cursos por carrera y consulta los docentes que imparten asignaturas afines en la universidad.</p>
+  </header>
+
+  <mat-card class="filter-card">
+    <label>
+      <span>Carrera</span>
+      <select [(ngModel)]="selectedCareerId">
+        <option [ngValue]="''">Todas las carreras</option>
+        @for (career of careers; track career.id) {
+          <option [ngValue]="career.id">{{ career.nombre }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="search-field">
+      <span>Buscar</span>
+      <input [(ngModel)]="searchTerm" type="search" placeholder="Busca por nombre de curso, código o carrera">
+    </label>
+  </mat-card>
+
+  <section class="career-grid">
+    @for (course of courseCards; track course.id) {
+      <mat-card class="career-card">
+        <div class="career-mark">
+          <mat-icon>school</mat-icon>
+        </div>
+        <div>
+          <h2>{{ course.nombre }}</h2>
+          <p><strong>{{ course.codigo }}</strong> • {{ course.carrera }}</p>
+        </div>
+        <div class="metric-row">
+          <span><strong>{{ course.creditos }}</strong> créditos</span>
+          <span><strong>{{ course.teachersCount }}</strong> docentes de carrera</span>
+        </div>
+        <a
+          mat-flat-button
+          color="primary"
+          routerLink="/docentes"
+          [queryParams]="{ carreraId: course.carreraId }"
+        >
+          Ver docentes
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </mat-card>
+    } @empty {
+      <mat-card class="empty-state">No se encontraron cursos académicos con los criterios seleccionados.</mat-card>
+    }
+  </section>
+
+  @if (auth.isAdmin()) {
+    <section class="admin-section">
+      <app-admin-page
+        title="Gestión de Cursos y Malla Curricular"
+        [columns]="columns"
+        [fields]="fields"
+        [service]="service"
+      />
+    </section>
+  }
+</section>
