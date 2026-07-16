@@ -76,31 +76,47 @@
     </mat-card>
   </div>
 
-  @if (auth.isAdmin() && adminData.length > 0) {
+  @if (auth.isAdmin() && (adminData.length > 0 || chartPanels.length > 0)) {
     <div class="admin-data-container">
       <h2>Datos tecnicos para administradores</h2>
-      @if (chartImages.length > 0) {
+      @if (chartPanels.length > 0) {
         <mat-card class="charts-panel">
           <div class="charts-header">
             <div>
-              <h3>Graficos generados</h3>
-              <p>Visualizacion automatica con Matplotlib desde los datos reales de resenas.</p>
+              <h3>Graficos interactivos</h3>
+              <p>Datos completos para administracion: incluye ceros, estados de moderacion y cobertura.</p>
             </div>
-            <span>{{ chartImages.length }} graficos</span>
+            <span>{{ chartPanels.length }} graficos</span>
           </div>
+
+          @if (kpis.length > 0) {
+            <div class="kpi-grid">
+              @for (kpi of kpis; track kpi.key) {
+                <div class="kpi-card">
+                  <small>{{ kpi.key }}</small>
+                  <strong>{{ displayValue(kpi.value) }}</strong>
+                </div>
+              }
+            </div>
+          }
+
           <div class="charts-grid">
-            @for (chart of chartImages; track chart.url) {
-              <figure class="chart-card">
-                <img [src]="chart.url" [alt]="chart.titulo" loading="lazy">
-                <figcaption>
-                  <strong>{{ chart.titulo }}</strong>
-                  <span>{{ chart.tipo }}</span>
-                </figcaption>
-              </figure>
+            @for (chart of chartPanels; track chart.id) {
+              <article class="chart-card">
+                <div class="chart-card-head">
+                  <div>
+                    <h4>{{ chart.title }}</h4>
+                    <p>{{ chart.subtitle }}</p>
+                  </div>
+                  <span>{{ chart.type }}</span>
+                </div>
+                <div class="echart-host" #chartHost></div>
+              </article>
             }
           </div>
         </mat-card>
       }
+
       <div class="admin-grid">
         @for (item of adminData; track item.title) {
           <mat-card class="admin-panel">
