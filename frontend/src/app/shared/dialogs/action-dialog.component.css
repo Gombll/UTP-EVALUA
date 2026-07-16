@@ -1,0 +1,64 @@
+.dialog-shell {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+  min-width: min(520px, calc(100vw - 48px));
+  padding: 24px 24px 0;
+}
+
+.dialog-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  background: var(--utp-primary-fixed);
+  color: var(--utp-primary-dark);
+  border-radius: 8px;
+}
+
+.dialog-shell.danger .dialog-icon {
+  background: #fde7e7;
+  color: var(--utp-error);
+}
+
+.dialog-icon mat-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+}
+
+h2 {
+  margin: 0 0 8px !important;
+  color: var(--utp-jet);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 28px;
+}
+
+p {
+  margin: 0 0 16px;
+  color: var(--utp-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+mat-dialog-actions {
+  padding: 16px 24px 24px !important;
+}
+
+@media (max-width: 560px) {
+  .dialog-shell {
+    grid-template-columns: 1fr;
+  }
+}

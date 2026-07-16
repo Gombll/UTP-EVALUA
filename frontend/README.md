@@ -1,27 +1,28 @@
-# Frontend - UTP+ EVALUA
+# Frontend - UTP Evalua
 
-Aplicación frontend en Angular que consumirá el backend en Flask.
+Frontend Angular standalone de la plataforma UTP Evalua.
 
-## Cómo instalar
+## Estructura activa
 
-1. Ir a la carpeta frontend:
-
-```powershell
-cd c:\Users\USUARIO\Desktop\UTP+EVALUA\frontend
+```text
+frontend/src/
+  app/
+    core/
+    features/
+    layout/
+    shared/
+  assets/
+  main.ts
+  styles.css
 ```
 
-2. Instalar dependencias (requiere Node.js y npm):
+La aplicacion arranca desde `src/main.ts` con `bootstrapApplication` y usa rutas en `src/app/app.routes.ts`.
+
+## Ejecutar
 
 ```powershell
 npm install
-```
-
-3. Ejecutar frontend:
-
-```powershell
 npm start
 ```
 
-4. Abrir en el navegador:
-
-`http://localhost:4200`
+Frontend: `http://localhost:4200`

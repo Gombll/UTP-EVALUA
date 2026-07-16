@@ -1,0 +1,106 @@
+<main class="login">
+  <section class="panel">
+    <div class="copy">
+      <span class="badge">
+        <img src="assets/utp-logo.svg" alt="UTP">
+        <span>Evalúa</span>
+      </span>
+      <h1>Evaluaciones académicas con trazabilidad y criterio</h1>
+      <p>
+        Accede para registrar reseñas responsables, consultar indicadores y apoyar la mejora continua
+        de carreras y docentes.
+      </p>
+    </div>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ mode() === 'login' ? 'Iniciar sesión' : 'Crear cuenta estudiantil' }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ mode() === 'login'
+            ? 'Ingresa con tu correo y contraseña registrados.'
+            : 'Completa tus datos siguiendo las reglas de validación.' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+          @if (mode() === 'register') {
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre completo</mat-label>
+              <input matInput formControlName="nombres" autocomplete="name">
+              <mat-hint>Usa solo letras y espacios.</mat-hint>
+              @if (form.controls.nombres.touched && form.controls.nombres.hasError('minlength')) {
+                <mat-error>Ingresa al menos 3 caracteres.</mat-error>
+              }
+              @if (form.controls.nombres.touched && form.controls.nombres.hasError('pattern')) {
+                <mat-error>El nombre no debe incluir números ni símbolos.</mat-error>
+              }
+            </mat-form-field>
+          }
+
+          <mat-form-field appearance="outline">
+            <mat-label>Correo electrónico</mat-label>
+            <input matInput type="email" formControlName="correo" autocomplete="email">
+            <mat-hint>Ejemplo: nombre.apellido@utp.edu.pe</mat-hint>
+            @if (form.controls.correo.touched && form.controls.correo.hasError('required')) {
+              <mat-error>El correo es obligatorio.</mat-error>
+            }
+            @if (form.controls.correo.touched && form.controls.correo.hasError('email')) {
+              <mat-error>Ingresa un correo válido.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+            >
+            <mat-hint>Debe cumplir todas las reglas indicadas.</mat-hint>
+            @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+              <mat-error>La contraseña es obligatoria.</mat-error>
+            }
+            @if (form.controls.password.touched && form.controls.password.hasError('pattern')) {
+              <mat-error>Revisa las reglas de seguridad de la contraseña.</mat-error>
+            }
+          </mat-form-field>
+
+          @if (mode() === 'register') {
+            <section class="rules-card" aria-label="Reglas para crear cuenta">
+              <strong>Reglas para crear tu cuenta</strong>
+              <ul>
+                <li [class.met]="form.controls.nombres.valid && !!form.controls.nombres.value.trim()">
+                  Nombre completo, sin números ni símbolos.
+                </li>
+                <li [class.met]="form.controls.correo.valid">
+                  Correo electrónico con formato válido.
+                </li>
+                <li [class.met]="passwordRuleMet('length')">
+                  Contraseña de al menos 8 caracteres.
+                </li>
+                <li [class.met]="passwordRuleMet('upper')">
+                  Al menos una letra mayúscula.
+                </li>
+                <li [class.met]="passwordRuleMet('lower')">
+                  Al menos una letra minúscula.
+                </li>
+                <li [class.met]="passwordRuleMet('number')">
+                  Al menos un número.
+                </li>
+              </ul>
+            </section>
+          }
+
+          <button mat-flat-button color="primary" type="submit">
+            <mat-icon>{{ mode() === 'login' ? 'login' : 'person_add' }}</mat-icon>
+            {{ mode() === 'login' ? 'Iniciar sesión' : 'Crear cuenta' }}
+          </button>
+          <button mat-button type="button" (click)="switchMode()">
+            {{ mode() === 'login' ? 'Crear cuenta estudiantil' : 'Volver al inicio de sesión' }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</main>

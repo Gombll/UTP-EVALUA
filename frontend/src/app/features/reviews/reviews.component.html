@@ -1,0 +1,124 @@
+<section class="evaluation-page">
+  <nav class="breadcrumb">
+    <a routerLink="/dashboard">Mis evaluaciones</a>
+    <span>&gt;</span>
+    <span>{{ selectedCareerName() }}</span>
+  </nav>
+
+  <mat-card class="evaluation-card">
+    <header class="evaluation-header">
+      <h1>Evaluación de {{ selectedCareerName() }}</h1>
+      <p>Tus respuestas son anónimas y ayudan a mejorar la experiencia académica.</p>
+
+      <section class="selection-panel" aria-label="Selección académica para evaluar">
+        <label>
+          <span>Facultad</span>
+          <select [(ngModel)]="selectedFacultyId" (change)="onFacultyChange()" aria-label="Facultad">
+            <option [ngValue]="''">Selecciona facultad</option>
+            @for (faculty of faculties; track faculty.id) {
+              <option [ngValue]="faculty.id">{{ faculty.nombre }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Carrera</span>
+          <select
+            [(ngModel)]="selectedCareerId"
+            (change)="onCareerChange()"
+            [disabled]="!selectedFacultyId"
+            aria-label="Carrera"
+          >
+            <option [ngValue]="''">Selecciona carrera</option>
+            @for (career of filteredCareers; track career.id) {
+              <option [ngValue]="career.id">{{ career.nombre }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Docente</span>
+          <select
+            [(ngModel)]="selectedTeacherId"
+            [disabled]="!selectedCareerId || filteredTeachers.length === 0"
+            aria-label="Docente asignado"
+          >
+            <option [ngValue]="''">Selecciona docente</option>
+            @for (teacher of filteredTeachers; track teacher.id) {
+              <option [ngValue]="teacher.id">
+                {{ teacher.nombres }} {{ teacher.apellidos }}
+              </option>
+            }
+          </select>
+        </label>
+      </section>
+
+      <div class="context-card">
+        <mat-icon>account_tree</mat-icon>
+        <span>{{ selectedFacultyName() }}</span>
+        <strong>{{ selectedCareerName() }}</strong>
+        <span>{{ selectedTeacherName() }}</span>
+      </div>
+    </header>
+
+    @if (selectedCareerId && filteredTeachers.length === 0) {
+      <p class="empty-selection">
+        No hay docentes registrados para esta carrera. Cambia la selección o registra docentes primero.
+      </p>
+    }
+
+    <div class="questions">
+      @for (question of questions; track question.id; let index = $index) {
+        <article class="question-card">
+          <h2>{{ index + 1 }}. {{ question.label }} <span>({{ selectedTeacherName() }})</span></h2>
+          <div class="stars" role="group" [attr.aria-label]="question.label">
+            @for (value of [1, 2, 3, 4, 5]; track value) {
+              <button
+                type="button"
+                class="star-button"
+                [class.active]="ratings[question.id] >= value"
+                (click)="setRating(question.id, value)"
+                [attr.aria-label]="'Calificar ' + value"
+              >
+                <mat-icon>star</mat-icon>
+              </button>
+            }
+          </div>
+          <div class="scale">
+            @for (label of scale; track label) {
+              <span>{{ label }}</span>
+            }
+          </div>
+        </article>
+      }
+    </div>
+
+    <section class="comment-card">
+      <h2>Comentarios adicionales o sugerencias</h2>
+      <textarea
+        [(ngModel)]="comment"
+        rows="4"
+        placeholder="Escribe aquí tu opinión sobre la carrera y el docente."
+      ></textarea>
+    </section>
+
+    <footer class="actions">
+      <a mat-stroked-button routerLink="/dashboard">Cancelar</a>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="submit()"
+        [disabled]="!selectedFacultyId || !selectedCareerId || !selectedTeacherId"
+      >
+        Enviar evaluación
+        <mat-icon>send</mat-icon>
+      </button>
+    </footer>
+  </mat-card>
+
+  <footer class="page-footer">
+    <img class="footer-logo" src="assets/utp-logo.svg" alt="UTP">
+    <small>2026 UTP Evalúa. Desarrollado para la comunidad estudiantil de UTP.</small>
+  </footer>
+</section>

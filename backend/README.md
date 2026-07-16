@@ -1,44 +1,45 @@
-# Backend - UTP+ EVALUA
+# Backend - UTP Evalua
 
-Este es el backend en Python con Flask para `UTP+ EVALUA`.
+Backend Flask RESTX de la plataforma UTP Evalua.
 
-## Cómo ejecutar
+## Estructura activa
 
-1. Ir a la carpeta del backend:
-
-```powershell
-cd c:\Users\USUARIO\Desktop\UTP+EVALUA\backend
+```text
+backend/
+  app/
+    config/
+    controllers/
+    services/
+    repositories/
+    models/
+    schemas/
+    routes/
+    middleware/
+    utils/
+    analytics/
+    logic/
+    database/
+  tests/
+  run.py
 ```
 
-2. Crear y activar el entorno virtual:
+Los archivos activos viven dentro de `backend/app`. Cualquier modulo legacy fuera de esa carpeta debe considerarse retirado.
+
+## Ejecutar
+
+Desde la raiz del proyecto, la forma recomendada es Docker:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+docker compose up --build
 ```
 
-3. Instalar dependencias:
+Para ejecutar localmente:
 
 ```powershell
-pip install -r requirements.txt
+cd backend
+python -m pytest
+flask --app run.py run --debug --host 0.0.0.0 --port 5000
 ```
 
-4. Ejecutar el backend:
-
-```powershell
-python run.py
-```
-
-5. La API estará disponible en:
-
-`http://127.0.0.1:5000`
-
-## Endpoints principales
-
-- `GET /api/careers`
-- `GET /api/courses`
-- `GET /api/courses/<id>/teachers`
-- `GET /api/teachers/<id>`
-- `POST /api/register`
-- `POST /api/login`
-- `POST /api/teachers/<id>/reviews`
+API: `http://localhost:5000/api`
+Swagger JSON: `http://localhost:5000/api/swagger.json`

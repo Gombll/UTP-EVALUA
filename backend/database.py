@@ -1,3 +1,7 @@
+"""Retired legacy module. Use app.extensions and app.models instead."""
+
+raise RuntimeError("backend.database is retired; use app.extensions and app.models instead.")
+
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -51,8 +55,8 @@ class Review(db.Model):
 def init_db():
     db.create_all()
     if not User.query.first():
-        admin = User(username="admin", password="admin123", role="admin")
-        student = User(username="alumno", password="alumno123", role="alumno")
+        admin = User(username="legacy-admin", password="legacy-disabled", role="admin")
+        student = User(username="legacy-student", password="legacy-disabled", role="alumno")
         db.session.add_all([admin, student])
         db.session.commit()
 

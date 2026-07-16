@@ -1,0 +1,65 @@
+<section class="catalog-page">
+  <header class="catalog-hero">
+    <p class="eyebrow">Carreras</p>
+    <h1>Explora la oferta académica</h1>
+    <p>Filtra por facultad y revisa qué docentes y evaluaciones pertenecen a cada carrera.</p>
+  </header>
+
+  <mat-card class="filter-card">
+    <label>
+      <span>Facultad</span>
+      <select [(ngModel)]="selectedFacultyId">
+        <option [ngValue]="''">Todas las facultades</option>
+        @for (faculty of faculties; track faculty.id) {
+          <option [ngValue]="faculty.id">{{ faculty.nombre }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="search-field">
+      <span>Buscar</span>
+      <input [(ngModel)]="searchTerm" type="search" placeholder="Busca carrera o facultad">
+    </label>
+  </mat-card>
+
+  <section class="career-grid">
+    @for (career of careerCards; track career.id) {
+      <mat-card class="career-card">
+        <div class="career-mark">
+          <mat-icon>menu_book</mat-icon>
+        </div>
+        <div>
+          <h2>{{ career.name }}</h2>
+          <p>{{ career.faculty }}</p>
+        </div>
+        <div class="metric-row">
+          <span><strong>{{ career.teachers }}</strong> docentes</span>
+          <span><strong>{{ career.reviews }}</strong> reseñas</span>
+          <span class="rating"><mat-icon>star</mat-icon>{{ career.rating }}/5</span>
+        </div>
+        <a
+          mat-flat-button
+          color="primary"
+          routerLink="/resenas"
+          [queryParams]="{ carreraId: career.id }"
+        >
+          Evaluar carrera
+          <mat-icon>send</mat-icon>
+        </a>
+      </mat-card>
+    } @empty {
+      <mat-card class="empty-state">No hay carreras para los filtros seleccionados.</mat-card>
+    }
+  </section>
+
+  @if (auth.isAdmin()) {
+    <section class="admin-section">
+      <app-admin-page
+        title="Gestión de carreras"
+        [columns]="columns"
+        [fields]="fields"
+        [service]="service"
+      />
+    </section>
+  }
+</section>

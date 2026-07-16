@@ -1,0 +1,166 @@
+<section class="student-home">
+  @if (successMessage) {
+    <mat-card class="success-alert">
+      <div class="success-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div>
+        <strong>Evaluación enviada</strong>
+        <p>{{ successMessage }}</p>
+      </div>
+      <button type="button" aria-label="Cerrar alerta" (click)="dismissSuccess()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card>
+  }
+
+  <section class="hero">
+    <h1>Bienvenido a UTP Evalúa</h1>
+    <p>Ayuda a mejorar la experiencia académica compartiendo evaluaciones responsables y verificables.</p>
+  </section>
+
+  <mat-card class="finder">
+    <div class="finder-title">
+      <mat-icon>tune</mat-icon>
+      <strong>Encuentra tu carrera o docente</strong>
+    </div>
+    <div class="finder-grid">
+      <label>
+        <span>Facultad</span>
+        <select [(ngModel)]="selectedFacultyId" (change)="applyFilters()">
+          <option [ngValue]="''">Todas las facultades</option>
+          @for (faculty of faculties; track faculty.id) {
+            <option [ngValue]="faculty.id">{{ faculty.nombre }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Carrera</span>
+        <select [(ngModel)]="selectedCareerId">
+          <option [ngValue]="''">Todas las carreras</option>
+          @for (career of filteredCareers; track career.id) {
+            <option [ngValue]="career.id">{{ career.nombre }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Semestre</span>
+        <select>
+          <option>Cualquier semestre</option>
+          <option>2026-I</option>
+          <option>2026-II</option>
+        </select>
+      </label>
+      <label>
+        <span>Buscar</span>
+        <input [(ngModel)]="searchTerm" type="search" placeholder="Busca carreras o docentes">
+      </label>
+      <button class="search-button" type="button" aria-label="Buscar">
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+  </mat-card>
+
+  <div class="portal-grid">
+    <main class="primary-column">
+      <mat-card class="ranking-card">
+        <header>
+          <h2>Carreras mejor evaluadas</h2>
+          <span>{{ careerSummaries.length }} carreras listadas</span>
+        </header>
+        <div class="list">
+          @for (career of careerSummaries; track career.id; let index = $index) {
+            <article class="rank-row">
+              <span class="rank-number">{{ index + 1 }}</span>
+              <div>
+                <h3>{{ career.name }}</h3>
+                <p>{{ career.faculty }} | {{ career.reviews }} reseñas</p>
+              </div>
+              <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ career.rating }}/5</span>
+              <a class="action-link" routerLink="/resenas" [queryParams]="{ carreraId: career.id }">
+                Evaluar carrera
+              </a>
+            </article>
+          } @empty {
+            <p class="empty-state">Aún no hay carreras con reseñas para los filtros seleccionados.</p>
+          }
+        </div>
+      </mat-card>
+
+      <mat-card class="ranking-card">
+        <header>
+          <h2>Docentes destacados</h2>
+          <span>{{ teacherSummaries.length }} docentes destacados</span>
+        </header>
+        <div class="list">
+          @for (teacher of teacherSummaries; track teacher.id; let index = $index) {
+            <article class="rank-row teacher-row">
+              <span class="rank-number">{{ index + 1 }}</span>
+              <span class="teacher-avatar" aria-hidden="true">
+                <span class="person-mark"></span>
+              </span>
+              <div>
+                <h3>{{ teacher.name }}</h3>
+                <p>{{ teacher.area }} | {{ teacher.reviews }} evaluaciones</p>
+              </div>
+              <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ teacher.rating }}/5</span>
+              <a class="profile-link" routerLink="/docentes">
+                Ver perfil
+                <span class="info-mark" aria-hidden="true">i</span>
+              </a>
+            </article>
+          } @empty {
+            <p class="empty-state">Aún no hay docentes evaluados para los filtros seleccionados.</p>
+          }
+        </div>
+      </mat-card>
+    </main>
+
+    <aside class="side-column">
+      <mat-card class="side-card">
+        <h2>Ranking general UTP</h2>
+        <div class="side-section">
+          <h3>Docentes de élite</h3>
+          <div class="mini-rank gold">
+            <strong>{{ topTeacher?.name ?? 'Sin datos' }}</strong>
+            <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ topTeacher?.rating ?? 0 }}/5</span>
+          </div>
+        </div>
+        <div class="side-section">
+          <h3>Carreras de élite</h3>
+          <div class="mini-rank crimson">
+            <strong>{{ topCareer?.name ?? 'Sin datos' }}</strong>
+            <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ topCareer?.rating ?? 0 }}/5</span>
+          </div>
+        </div>
+        <a class="full-ranking" routerLink="/reportes">Ver ranking completo <mat-icon>leaderboard</mat-icon></a>
+      </mat-card>
+
+      <mat-card class="side-card reviews-card">
+        <h2>Últimas reseñas</h2>
+        @for (review of latestReviews; track review.id) {
+          <article class="review-card">
+            <div class="review-head">
+              <span class="review-avatar" aria-hidden="true">
+              <span class="person-mark muted"></span>
+              </span>
+              <div>
+                <strong>{{ review.author }}</strong>
+                <small>{{ review.date }}</small>
+              </div>
+              <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ review.rating }}</span>
+            </div>
+            <p class="review-meta">{{ review.meta }}</p>
+            <p class="quote">“{{ review.text }}”</p>
+            <button mat-button type="button" class="report-action" (click)="reportReview(review)">
+              <mat-icon>flag</mat-icon>
+              Reportar
+            </button>
+          </article>
+        } @empty {
+          <p class="empty-state">Todavía no hay reseñas registradas.</p>
+        }
+      </mat-card>
+    </aside>
+  </div>
+</section>
