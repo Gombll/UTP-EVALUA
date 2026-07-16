@@ -1,0 +1,76 @@
+<section class="moderation-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Administración</p>
+      <h1>Moderación de reseñas</h1>
+      <span>{{ filteredRows.length }} reseñas encontradas</span>
+    </div>
+
+    <div class="filters">
+      <label>
+        <span>Estado</span>
+        <select [(ngModel)]="status" (change)="load()">
+          <option value="reportada">Reportadas</option>
+          <option value="visible">Visibles</option>
+          <option value="oculta">Ocultas</option>
+          <option value="todos">Todas</option>
+        </select>
+      </label>
+      <label>
+        <span>Buscar</span>
+        <input [(ngModel)]="search" type="search" placeholder="Docente, estudiante o texto">
+      </label>
+      <button mat-flat-button color="primary" type="button" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  <div class="review-list">
+    @for (review of filteredRows; track review.id) {
+      <mat-card class="review-card" [class.reported]="review.estado === 'reportada'" [class.hidden]="review.estado === 'oculta'">
+        <div class="card-head">
+          <div>
+            <span class="status">{{ statusLabel(review) }}</span>
+            <h2>{{ review.docente ?? 'Docente no disponible' }}</h2>
+            <p>
+              Estudiante: {{ review.estudiante ?? ('ID ' + (review.estudiante_id ?? 'N/D')) }}
+              | {{ formatDate(review.fecha) }}
+            </p>
+          </div>
+          <strong class="rating"><mat-icon>star</mat-icon>{{ review.calificacion }}/5</strong>
+        </div>
+
+        <p class="comment">“{{ review.comentario }}”</p>
+
+        @if (review.motivo_reporte) {
+          <div class="report-box">
+            <mat-icon>flag</mat-icon>
+            <div>
+              <strong>Motivo del reporte</strong>
+              <p>{{ review.motivo_reporte }}</p>
+              <small>{{ formatDate(review.fecha_reporte) }}</small>
+            </div>
+          </div>
+        }
+
+        <footer class="actions">
+          <button mat-stroked-button type="button" (click)="approve(review)" [disabled]="review.estado === 'visible'">
+            <mat-icon>check_circle</mat-icon>
+            Aprobar
+          </button>
+          <button mat-flat-button color="warn" type="button" (click)="hide(review)" [disabled]="review.estado === 'oculta'">
+            <mat-icon>visibility_off</mat-icon>
+            Ocultar
+          </button>
+        </footer>
+      </mat-card>
+    } @empty {
+      <mat-card class="empty-card">
+        <mat-icon>{{ loading ? 'hourglass_top' : 'verified' }}</mat-icon>
+        <p>{{ loading ? 'Cargando reseñas...' : 'No hay reseñas para este filtro.' }}</p>
+      </mat-card>
+    }
+  </div>
+</section>

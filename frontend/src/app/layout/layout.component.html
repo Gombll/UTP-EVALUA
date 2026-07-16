@@ -1,0 +1,37 @@
+<mat-toolbar class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" routerLink="/dashboard" aria-label="UTP Evalúa inicio">
+      <img class="brand-logo" src="assets/utp-logo.svg" alt="UTP">
+      <span class="evalua-badge">Evalúa</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
+      <a routerLink="/carreras" routerLinkActive="active">Carreras</a>
+      <a routerLink="/docentes" routerLinkActive="active">Docentes</a>
+      <a routerLink="/reportes" routerLinkActive="active">Rankings</a>
+      <a routerLink="/resenas" routerLinkActive="active">Reseñas</a>
+      @if (isAdmin()) {
+        <a routerLink="/moderacion" routerLinkActive="active">Moderación</a>
+        <a routerLink="/facultades" routerLinkActive="active">Administración</a>
+      }
+    </nav>
+
+    <div class="session">
+      <span class="role-avatar" [class.admin]="isAdmin()" aria-hidden="true">
+        <mat-icon>{{ roleIcon() }}</mat-icon>
+      </span>
+      <span class="user">
+        <strong>{{ user()?.nombres || 'Usuario' }}</strong>
+        <small>{{ roleLabel() }}</small>
+      </span>
+      <button mat-icon-button aria-label="Cerrar sesión" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>
+
+<main class="content">
+  <router-outlet />
+</main>

@@ -1,0 +1,193 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 54px;
+  padding: 0;
+  background: var(--utp-surface-container-lowest);
+  color: var(--utp-on-surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  width: min(1280px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--utp-jet);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.brand-logo {
+  display: block;
+  width: 116px;
+  max-width: 28vw;
+  height: 28px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.evalua-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  background: var(--utp-jet);
+  color: #ffffff;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.evalua-badge::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-left: 4px;
+  border-right: 2px solid #32c766;
+  border-bottom: 2px solid #32c766;
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 20px;
+}
+
+.main-nav a {
+  min-width: 72px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--utp-jet);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.main-nav a.active,
+.main-nav a:hover {
+  background: var(--utp-primary-fixed);
+  color: var(--utp-primary-dark);
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  background: #eef1f4;
+  color: var(--utp-jet);
+  border: 1px solid #dfe3e7;
+  border-radius: 8px;
+}
+
+.role-avatar.admin {
+  background: var(--utp-primary-fixed);
+  color: var(--utp-primary-dark);
+  border-color: #f3b4c2;
+}
+
+.role-avatar mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.user {
+  display: grid;
+  min-width: 148px;
+  min-height: 34px;
+  padding: 4px 12px;
+  background: #ffffff;
+  color: var(--utp-jet);
+  border: 1px solid #dfe3e7;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  line-height: 1.1;
+}
+
+.user strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user small {
+  color: var(--utp-secondary);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.content {
+  width: min(1280px, 100%);
+  min-width: 0;
+  min-height: calc(100vh - 54px);
+  margin: 0 auto;
+  padding: 0 24px 48px;
+  background: var(--utp-surface);
+}
+
+@media (max-width: 820px) {
+  .topbar {
+    height: auto;
+  }
+
+  .topbar-inner {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .main-nav {
+    order: 3;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 6px;
+    overflow-x: auto;
+  }
+
+  .main-nav a {
+    min-width: auto;
+    flex: 0 0 auto;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .user {
+    display: none;
+  }
+
+  .brand-logo {
+    width: 96px;
+    height: 24px;
+  }
+
+  .content {
+    padding: 0 16px 32px;
+  }
+}

@@ -1,0 +1,78 @@
+<section class="catalog-page">
+  <header class="catalog-hero">
+    <p class="eyebrow">Directorio académico</p>
+    <h1>Docentes UTP</h1>
+    <p>Consulta docentes por facultad, carrera y desempeño antes de registrar una evaluación.</p>
+  </header>
+
+  <mat-card class="filter-card">
+    <label>
+      <span>Facultad</span>
+      <select [(ngModel)]="selectedFacultyId" (change)="onFacultyChange()">
+        <option [ngValue]="''">Todas las facultades</option>
+        @for (faculty of faculties; track faculty.id) {
+          <option [ngValue]="faculty.id">{{ faculty.nombre }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>Carrera</span>
+      <select [(ngModel)]="selectedCareerId">
+        <option [ngValue]="''">Todas las carreras</option>
+        @for (career of filteredCareers; track career.id) {
+          <option [ngValue]="career.id">{{ career.nombre }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="search-field">
+      <span>Buscar</span>
+      <input [(ngModel)]="searchTerm" type="search" placeholder="Nombre, correo o carrera">
+    </label>
+  </mat-card>
+
+  <section class="teacher-grid">
+    @for (teacher of filteredTeachers; track teacher.id) {
+      <mat-card class="teacher-card">
+        <div class="avatar" aria-hidden="true">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="teacher-body">
+          <h2>{{ teacher.nombres }} {{ teacher.apellidos }}</h2>
+          <p>{{ teacher.correo }}</p>
+          <div class="chips">
+            <span>{{ teacher.facultad ?? 'Sin facultad' }}</span>
+            <span>{{ teacher.carrera ?? 'Sin carrera' }}</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span class="rating"><mat-icon>star</mat-icon>{{ teacher.promedio ?? 0 }}/5</span>
+          <span>{{ teacher.resenas ?? 0 }} reseñas</span>
+        </div>
+        <a
+          mat-flat-button
+          color="primary"
+          routerLink="/resenas"
+          [queryParams]="{ docenteId: teacher.id }"
+        >
+          Evaluar docente
+          <mat-icon>send</mat-icon>
+        </a>
+      </mat-card>
+    } @empty {
+      <mat-card class="empty-state">No hay docentes para los filtros seleccionados.</mat-card>
+    }
+  </section>
+
+  @if (auth.isAdmin()) {
+    <section class="admin-section">
+      <app-admin-page
+        title="Gestión de docentes"
+        [columns]="columns"
+        [fields]="fields"
+        [service]="service"
+      />
+    </section>
+  }
+</section>

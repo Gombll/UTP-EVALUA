@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+*.log
+backend/app/static/reports/
+backend/app/static/uploads/*
+!backend/app/static/uploads/.gitkeep
+frontend/node_modules/
+frontend/dist/
+.angular/
+.DS_Store
