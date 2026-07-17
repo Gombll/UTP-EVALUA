@@ -29,6 +29,16 @@ career_model = api.model(
     },
 )
 
+course_model = api.model(
+    "Curso",
+    {
+        "nombre": fields.String(required=True),
+        "codigo": fields.String(),
+        "creditos": fields.Integer(),
+        "carrera_id": fields.Integer(required=True),
+    },
+)
+
 teacher_model = api.model(
     "Docente",
     {

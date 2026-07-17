@@ -31,6 +31,15 @@ export interface Career {
   facultad?: string;
 }
 
+export interface Course {
+  id: number;
+  nombre: string;
+  codigo?: string;
+  creditos?: number;
+  carrera_id: number;
+  carrera?: string;
+}
+
 export interface Teacher {
   id: number;
   nombres: string;

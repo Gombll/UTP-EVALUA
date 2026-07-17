@@ -2,7 +2,7 @@
   <header class="page-hero">
     <p class="eyebrow">Rankings UTP</p>
     <h1>Desempeno docente y carreras mejor evaluadas</h1>
-    <p>Explora resultados agregados de evaluaciones anonimas y detecta referentes academicos.</p>
+    <p>Explora resultados agregados de evaluations anonimas y detecta referentes academicos.</p>
     @if (auth.isAdmin()) {
       <div class="export-actions">
         <a mat-flat-button color="primary" [href]="excelUrl">
@@ -25,7 +25,7 @@
           <span class="rank">{{ index + 1 }}</span>
           <div>
             <h3>{{ teacher.name }}</h3>
-            <p>{{ teacher.career }} | {{ teacher.reviews }} evaluaciones</p>
+            <p>{{ teacher.career }} | {{ teacher.reviews }} evaluations</p>
           </div>
           <span class="score"><mat-icon>star</mat-icon>{{ teacher.rating }}/5</span>
         </article>
@@ -124,29 +124,96 @@
             <div class="generic-data-grid">
               @for (prop of objectEntries(item.data); track prop.key) {
                 <div class="data-group">
-                  <h4>{{ prop.key }}</h4>
+                  <h4>{{ prop.key.replaceAll('_', ' ') }}</h4>
+
                   @if (isArray(prop.value)) {
-                    <ul class="data-list">
-                      @for (el of asArray(prop.value); track el) {
-                        <li>
-                          @if (isObject(el)) {
-                            @for (subprop of objectEntries(el); track subprop.key) {
-                              <span class="subprop-badge"><strong>{{ subprop.key }}:</strong> {{ displayValue(subprop.value) }}</span>
+                    @if (asArray(prop.value).length === 0) {
+                      <p class="empty-hint">Sin registros disponibles en esta categoria.</p>
+                    } @else if (isTeacherRecord(asArray(prop.value)[0])) {
+                      <div class="clean-records-list">
+                        @for (el of asArray(prop.value); track $index; let idx = $index) {
+                          <article class="ranking-row clean-sub-row">
+                            <span class="rank">{{ idx + 1 }}</span>
+                            <div>
+                              <h3>{{ getTeacherName(el) }}</h3>
+                              @if (getTeacherSubtitle(el)) {
+                                <p>{{ getTeacherSubtitle(el) }}</p>
+                              }
+                            </div>
+                            @if (getTeacherScore(el)) {
+                              <span class="score"><mat-icon>star</mat-icon>{{ getTeacherScore(el) }}</span>
                             }
-                          } @else {
-                            {{ displayValue(el) }}
-                          }
-                        </li>
-                      }
-                    </ul>
+                          </article>
+                        }
+                      </div>
+                    } @else if (isPrimitiveArray(asArray(prop.value))) {
+                      <ul class="clean-bullet-list">
+                        @for (el of asArray(prop.value); track el) {
+                          <li>
+                            <mat-icon class="bullet-icon">verified</mat-icon>
+                            <span>{{ el }}</span>
+                          </li>
+                        }
+                      </ul>
+                    } @else {
+                      <div class="clean-json-box">
+                        <pre>{{ displayValue(prop.value) }}</pre>
+                      </div>
+                    }
                   } @else if (isObject(prop.value)) {
-                    <ul class="data-list">
-                      @for (subprop of objectEntries(prop.value); track subprop.key) {
-                        <li><strong>{{ subprop.key }}:</strong> {{ displayValue(subprop.value) }}</li>
-                      }
-                    </ul>
+                    @if (isComplexDict(prop.value)) {
+                      <div class="nested-sections-grid">
+                        @for (subprop of objectEntries(prop.value); track subprop.key) {
+                          <div class="nested-subcard">
+                            <h5>{{ subprop.key }}</h5>
+                            @if (isArray(subprop.value) && isTeacherRecord(asArray(subprop.value)[0])) {
+                              <div class="clean-records-list">
+                                @for (el of asArray(subprop.value); track $index; let idx = $index) {
+                                  <article class="ranking-row clean-sub-row">
+                                    <span class="rank">{{ idx + 1 }}</span>
+                                    <div>
+                                      <h3>{{ getTeacherName(el) }}</h3>
+                                      @if (getTeacherSubtitle(el)) {
+                                        <p>{{ getTeacherSubtitle(el) }}</p>
+                                      }
+                                    </div>
+                                    @if (getTeacherScore(el)) {
+                                      <span class="score"><mat-icon>star</mat-icon>{{ getTeacherScore(el) }}</span>
+                                    }
+                                  </article>
+                                }
+                              </div>
+                            } @else if (isArray(subprop.value) && isPrimitiveArray(asArray(subprop.value))) {
+                              <ul class="clean-bullet-list">
+                                @for (el of asArray(subprop.value); track el) {
+                                  <li>
+                                    <mat-icon class="bullet-icon">verified</mat-icon>
+                                    <span>{{ el }}</span>
+                                  </li>
+                                }
+                              </ul>
+                            } @else {
+                              <div class="clean-json-box">
+                                <pre>{{ displayValue(subprop.value) }}</pre>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <div class="stat-badge-grid">
+                        @for (subprop of objectEntries(prop.value); track subprop.key) {
+                          <div class="stat-item">
+                            <span class="stat-label">{{ subprop.key.replaceAll('_', ' ') }}</span>
+                            <span class="score"><mat-icon>star</mat-icon>{{ subprop.value }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
                   } @else {
-                    <p class="scalar-value">{{ displayValue(prop.value) }}</p>
+                    <div class="scalar-card">
+                      <p class="scalar-value">{{ displayValue(prop.value) }}</p>
+                    </div>
                   }
                 </div>
               }

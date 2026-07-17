@@ -75,6 +75,7 @@ class PrologResource(Resource):
 CHART_TITLES = {
     "top_10_docentes.png": "Top 10 docentes",
     "promedio_facultad.png": "Promedio por facultad",
+    "promedio_carrera.png": "Promedio por carrera",
     "resenas_mes.png": "Tendencia de resenas por mes",
     "distribucion_calificaciones.png": "Distribucion de calificaciones",
 }
@@ -82,6 +83,7 @@ CHART_TITLES = {
 CHART_TYPES = {
     "top_10_docentes.png": "barras",
     "promedio_facultad.png": "barras",
+    "promedio_carrera.png": "barras",
     "resenas_mes.png": "lineas",
     "distribucion_calificaciones.png": "pastel",
 }

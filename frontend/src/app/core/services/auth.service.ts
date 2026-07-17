@@ -43,7 +43,8 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.currentUser()?.role === 'Administrador';
+    const role = this.currentUser()?.role?.toLowerCase();
+    return role === 'administrador' || role === 'admin';
   }
 
   private persistSession(response: AuthResponse): void {

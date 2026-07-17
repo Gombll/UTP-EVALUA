@@ -43,6 +43,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'cursos',
+        loadComponent: () =>
+          import('./features/courses/courses.component').then(
+            (m) => m.CoursesComponent
+          )
+      },
+      {
         path: 'docentes',
         loadComponent: () =>
           import('./features/teachers/teachers.component').then(

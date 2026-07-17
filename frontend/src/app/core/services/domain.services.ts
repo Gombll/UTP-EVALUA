@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Career, Dashboard, Faculty, Review, Teacher, User } from '../models';
+import { Career, Course, Dashboard, Faculty, Review, Teacher, User } from '../models';
 import { CrudService } from './crud.service';
 
 @Injectable({ providedIn: 'root' })
@@ -16,6 +16,13 @@ export class FacultyService extends CrudService<Faculty> {
 export class CareerService extends CrudService<Career> {
   constructor(http: HttpClient) {
     super(http, 'carreras');
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class CourseService extends CrudService<Course> {
+  constructor(http: HttpClient) {
+    super(http, 'cursos');
   }
 }
 

@@ -14,6 +14,12 @@ class Career(BaseModel):
 
     faculty = db.relationship("Faculty", back_populates="careers")
     teachers = db.relationship("Teacher", back_populates="career", lazy=True)
+    courses = db.relationship(
+        "Course",
+        back_populates="career",
+        cascade="all, delete-orphan",
+        lazy=True,
+    )
 
     __table_args__ = (
         db.UniqueConstraint("nombre", "facultad_id", name="uq_carrera_facultad"),

@@ -20,7 +20,7 @@
 }
 
 .evaluation-card {
-  width: min(680px, 100%);
+  width: min(780px, 100%);
   margin: 0 auto;
   padding: 34px;
 }
@@ -52,7 +52,7 @@
 
 .selection-panel {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
   margin-top: 10px;
@@ -120,6 +120,23 @@
 
 .context-card strong {
   color: var(--utp-primary-dark);
+}
+
+.course-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--utp-primary-fixed);
+  color: var(--utp-primary-dark);
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.course-badge mat-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
 }
 
 .empty-selection {
@@ -257,7 +274,13 @@ textarea:focus {
   object-fit: contain;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
+  .selection-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
   .evaluation-page {
     padding-top: 20px;
   }

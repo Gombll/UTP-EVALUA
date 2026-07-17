@@ -7,9 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 
-import { Career, Faculty, Teacher } from '../../core/models';
+import { Career, Course, Faculty, Teacher } from '../../core/models';
 import {
   CareerService,
+  CourseService,
   FacultyService,
   ReviewService,
   TeacherService
@@ -37,6 +38,7 @@ interface EvaluationQuestion {
 export class ReviewsComponent implements OnInit {
   private readonly facultyService = inject(FacultyService);
   private readonly careerService = inject(CareerService);
+  private readonly courseService = inject(CourseService);
   private readonly teacherService = inject(TeacherService);
   private readonly reviews = inject(ReviewService);
   private readonly snack = inject(MatSnackBar);
@@ -45,9 +47,11 @@ export class ReviewsComponent implements OnInit {
 
   faculties: Faculty[] = [];
   careers: Career[] = [];
+  courses: Course[] = [];
   teacherOptions: Teacher[] = [];
   selectedFacultyId: number | '' = '';
   selectedCareerId: number | '' = '';
+  selectedCourseId: number | '' = '';
   selectedTeacherId: number | '' = '';
   comment = '';
 
@@ -71,10 +75,12 @@ export class ReviewsComponent implements OnInit {
     forkJoin({
       faculties: this.facultyService.list({ per_page: 100 }),
       careers: this.careerService.list({ per_page: 100 }),
+      courses: this.courseService.list({ per_page: 100 }),
       teachers: this.teacherService.list({ per_page: 100 })
-    }).subscribe(({ faculties, careers, teachers }) => {
+    }).subscribe(({ faculties, careers, courses, teachers }) => {
       this.faculties = faculties.items;
       this.careers = careers.items;
+      this.courses = courses.items;
       this.teacherOptions = teachers.items;
       this.applyInitialSelection();
     });
@@ -85,6 +91,13 @@ export class ReviewsComponent implements OnInit {
       return this.careers;
     }
     return this.careers.filter((career) => career.facultad_id === Number(this.selectedFacultyId));
+  }
+
+  get filteredCourses(): Course[] {
+    if (!this.selectedCareerId) {
+      return [];
+    }
+    return this.courses.filter((course) => course.carrera_id === Number(this.selectedCareerId));
   }
 
   get filteredTeachers(): Teacher[] {
@@ -100,13 +113,19 @@ export class ReviewsComponent implements OnInit {
 
   onFacultyChange(): void {
     this.selectedCareerId = '';
+    this.selectedCourseId = '';
     this.selectedTeacherId = '';
   }
 
   onCareerChange(): void {
     const career = this.careers.find((item) => item.id === Number(this.selectedCareerId));
     this.selectedFacultyId = career?.facultad_id ?? this.selectedFacultyId;
+    this.selectedCourseId = '';
     this.selectedTeacherId = this.filteredTeachers[0]?.id ?? '';
+  }
+
+  onCourseChange(): void {
+    // El estudiante vinculó un curso a su evaluación docente
   }
 
   setRating(questionId: string, value: number): void {
@@ -131,11 +150,15 @@ export class ReviewsComponent implements OnInit {
       ratingValues.reduce((total, value) => total + value, 0) / ratingValues.length
     );
 
+    const course = this.courses.find((item) => item.id === Number(this.selectedCourseId));
+    const coursePrefix = course ? `[Curso: ${course.nombre}] ` : '';
+    const finalComment = `${coursePrefix}${this.comment || 'Evaluación del docente registrada.'}`;
+
     this.reviews
       .create({
         docente_id: Number(this.selectedTeacherId),
         calificacion: average,
-        comentario: this.comment || 'Evaluación registrada sin comentario adicional.'
+        comentario: finalComment
       })
       .subscribe({
         next: () => {
@@ -143,7 +166,7 @@ export class ReviewsComponent implements OnInit {
           this.router.navigate(['/dashboard'], {
             state: {
               reviewSuccess: true,
-              message: 'Tu reseña anónima fue registrada correctamente y ya actualiza los indicadores.'
+              message: 'Tu reseña y evaluación vinculada al curso fue registrada correctamente en la base de datos.'
             }
           });
         },
@@ -159,6 +182,11 @@ export class ReviewsComponent implements OnInit {
     return career?.nombre ?? 'Selecciona una carrera';
   }
 
+  selectedCourseName(): string {
+    const course = this.courses.find((item) => item.id === Number(this.selectedCourseId));
+    return course ? course.nombre : '';
+  }
+
   selectedTeacherName(): string {
     const teacher = this.teacherOptions.find((item) => item.id === Number(this.selectedTeacherId));
     return teacher ? `${teacher.nombres} ${teacher.apellidos}` : 'Selecciona un docente';
@@ -172,6 +200,19 @@ export class ReviewsComponent implements OnInit {
   private applyInitialSelection(): void {
     const careerId = Number(this.route.snapshot.queryParamMap.get('carreraId'));
     const teacherId = Number(this.route.snapshot.queryParamMap.get('docenteId'));
+    const courseId = Number(this.route.snapshot.queryParamMap.get('cursoId'));
+
+    if (courseId) {
+      const course = this.courses.find((item) => item.id === courseId);
+      if (course) {
+        this.selectedCourseId = course.id;
+        this.selectedCareerId = course.carrera_id;
+        const career = this.careers.find((item) => item.id === course.carrera_id);
+        this.selectedFacultyId = career?.facultad_id ?? '';
+        this.selectedTeacherId = this.filteredTeachers[0]?.id ?? '';
+        return;
+      }
+    }
 
     if (teacherId) {
       const teacher = this.teacherOptions.find((item) => item.id === teacherId);

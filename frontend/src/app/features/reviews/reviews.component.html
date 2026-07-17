@@ -37,6 +37,23 @@
         </label>
 
         <label>
+          <span>Curso (Materia dictada)</span>
+          <select
+            [(ngModel)]="selectedCourseId"
+            (change)="onCourseChange()"
+            [disabled]="!selectedCareerId"
+            aria-label="Curso o materia"
+          >
+            <option [ngValue]="''">Curso general / opcional</option>
+            @for (course of filteredCourses; track course.id) {
+              <option [ngValue]="course.id">
+                {{ course.nombre }} {{ course.codigo ? '(' + course.codigo + ')' : '' }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
           <span>Docente</span>
           <select
             [(ngModel)]="selectedTeacherId"
@@ -57,6 +74,9 @@
         <mat-icon>account_tree</mat-icon>
         <span>{{ selectedFacultyName() }}</span>
         <strong>{{ selectedCareerName() }}</strong>
+        @if (selectedCourseId) {
+          <span class="course-badge"><mat-icon>menu_book</mat-icon> {{ selectedCourseName() }}</span>
+        }
         <span>{{ selectedTeacherName() }}</span>
       </div>
     </header>
@@ -98,7 +118,7 @@
       <textarea
         [(ngModel)]="comment"
         rows="4"
-        placeholder="Escribe aquí tu opinión sobre la carrera y el docente."
+        placeholder="Escribe aquí tu opinión sobre la carrera, la materia y el docente."
       ></textarea>
     </section>
 
