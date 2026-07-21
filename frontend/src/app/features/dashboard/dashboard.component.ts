@@ -9,9 +9,10 @@ import { MatTableModule } from '@angular/material/table';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
-import { Career, Dashboard, Faculty, Review, Teacher } from '../../core/models';
+import { Career, Course, Dashboard, Faculty, Review, Teacher } from '../../core/models';
 import {
   CareerService,
+  CourseService,
   DashboardService,
   FacultyService,
   ReviewService,
@@ -38,12 +39,32 @@ interface TeacherSummary {
   rating: number;
 }
 
+interface CourseEvaluationSummary {
+  id: number;
+  name: string;
+  code: string;
+  career: string;
+  teacherCount: number;
+}
+
+interface TeacherCourseSummary {
+  id: number;
+  name: string;
+  career: string;
+  course: string;
+  courseId: number;
+  reviews: number;
+  rating: number;
+}
+
 interface ReviewSummary {
   id: number;
   author: string;
   date: string;
   rating: number;
-  meta: string;
+  teacher: string;
+  career: string;
+  course: string;
   text: string;
 }
 
@@ -67,6 +88,7 @@ export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly facultyService = inject(FacultyService);
   private readonly careerService = inject(CareerService);
+  private readonly courseService = inject(CourseService);
   private readonly teacherService = inject(TeacherService);
   private readonly reviewService = inject(ReviewService);
   private readonly snack = inject(MatSnackBar);
@@ -75,6 +97,7 @@ export class DashboardComponent implements OnInit {
   data?: Dashboard;
   faculties: Faculty[] = [];
   careers: Career[] = [];
+  courses: Course[] = [];
   teachers: Teacher[] = [];
   successMessage = '';
   selectedFacultyId: number | '' = '';
@@ -136,6 +159,43 @@ export class DashboardComponent implements OnInit {
       .slice(0, 5);
   }
 
+  get evaluableCourses(): CourseEvaluationSummary[] {
+    const search = this.normalize(this.searchTerm);
+    return this.courses
+      .filter((course) => {
+        const matchesCareer =
+          !this.selectedCareerId || course.carrera_id === Number(this.selectedCareerId);
+        const haystack = this.normalize(`${course.nombre} ${course.codigo ?? ''} ${course.carrera ?? ''}`);
+        return matchesCareer && (!search || haystack.includes(search));
+      })
+      .map((course) => ({
+        id: course.id,
+        name: course.nombre,
+        code: course.codigo ?? 'SIN-COD',
+        career: course.carrera ?? 'Sin carrera',
+        teacherCount: this.courseTeacherCount(course.id)
+      }))
+      .filter((course) => course.teacherCount > 0)
+      .sort((a, b) => b.teacherCount - a.teacherCount || a.name.localeCompare(b.name))
+      .slice(0, 6);
+  }
+
+  get teacherCourseSummaries(): TeacherCourseSummary[] {
+    return this.filteredTeachers()
+      .filter((teacher) => Boolean(teacher.curso_id))
+      .map((teacher) => ({
+        id: teacher.id,
+        name: `${teacher.nombres} ${teacher.apellidos}`,
+        career: teacher.carrera ?? 'Sin carrera',
+        course: teacher.curso ?? 'Sin curso asignado',
+        courseId: teacher.curso_id ?? 0,
+        reviews: teacher.resenas ?? 0,
+        rating: Number((teacher.promedio ?? 0).toFixed(1))
+      }))
+      .sort((a, b) => a.course.localeCompare(b.course) || a.name.localeCompare(b.name))
+      .slice(0, 6);
+  }
+
   get latestReviews(): ReviewSummary[] {
     return (this.data?.ultimas_resenas ?? [])
       .filter((review) => this.matchesReviewSearch(review))
@@ -147,8 +207,10 @@ export class DashboardComponent implements OnInit {
           author: 'Estudiante anónimo',
           date: this.formatDate(review.fecha),
           rating: review.calificacion,
-          meta: `Carrera: ${teacher?.carrera ?? 'Sin carrera'} / Docente: ${review.docente ?? 'Sin docente'}`,
-          text: review.comentario
+          teacher: review.docente ?? 'Sin docente',
+          career: review.carrera ?? teacher?.carrera ?? 'Sin carrera',
+          course: review.curso ?? teacher?.curso ?? this.courseFromComment(review.comentario),
+          text: this.cleanReviewText(review.comentario)
         };
       });
   }
@@ -210,11 +272,13 @@ export class DashboardComponent implements OnInit {
       dashboard: this.dashboardService.getSummary(),
       faculties: this.facultyService.list({ per_page: 100 }),
       careers: this.careerService.list({ per_page: 100 }),
+      courses: this.courseService.list({ per_page: 100 }),
       teachers: this.teacherService.list({ per_page: 100 })
-    }).subscribe(({ dashboard, faculties, careers, teachers }) => {
+    }).subscribe(({ dashboard, faculties, careers, courses, teachers }) => {
       this.data = dashboard;
       this.faculties = faculties.items;
       this.careers = careers.items;
+      this.courses = courses.items;
       this.teachers = teachers.items;
     });
   }
@@ -227,10 +291,14 @@ export class DashboardComponent implements OnInit {
       const matchesCareer =
         !this.selectedCareerId || teacher.carrera_id === Number(this.selectedCareerId);
       const haystack = this.normalize(
-        `${teacher.nombres} ${teacher.apellidos} ${teacher.carrera ?? ''} ${teacher.facultad ?? ''}`
+        `${teacher.nombres} ${teacher.apellidos} ${teacher.carrera ?? ''} ${teacher.curso ?? ''} ${teacher.facultad ?? ''}`
       );
       return matchesFaculty && matchesCareer && (!search || haystack.includes(search));
     });
+  }
+
+  private courseTeacherCount(courseId: number): number {
+    return this.teachers.filter((teacher) => teacher.curso_id === courseId).length;
   }
 
   private matchesReviewSearch(review: Review): boolean {
@@ -240,9 +308,18 @@ export class DashboardComponent implements OnInit {
     }
     const teacher = this.teachers.find((item) => item.id === review.docente_id);
     const haystack = this.normalize(
-      `${review.docente ?? ''} ${teacher?.carrera ?? ''} ${review.comentario}`
+      `${review.docente ?? ''} ${review.carrera ?? ''} ${review.curso ?? ''} ${teacher?.carrera ?? ''} ${teacher?.curso ?? ''} ${review.comentario}`
     );
     return haystack.includes(search);
+  }
+
+  private courseFromComment(comment: string): string {
+    const match = comment.match(/^\[Curso:\s*([^\]]+)\]\s*/);
+    return match?.[1] ?? 'Sin curso';
+  }
+
+  private cleanReviewText(comment: string): string {
+    return comment.replace(/^\[Curso:\s*[^\]]+\]\s*/, '');
   }
 
   private readNavigationAlert(): void {

@@ -35,9 +35,9 @@ export interface Course {
   id: number;
   nombre: string;
   codigo?: string;
-  creditos?: number;
   carrera_id: number;
   carrera?: string;
+  docentes?: number;
 }
 
 export interface Teacher {
@@ -47,8 +47,10 @@ export interface Teacher {
   correo: string;
   facultad_id: number;
   carrera_id: number;
+  curso_id?: number | null;
   facultad?: string;
   carrera?: string;
+  curso?: string | null;
   fotografia?: string;
   promedio?: number;
   resenas?: number;
@@ -58,6 +60,8 @@ export interface Review {
   id: number;
   docente_id: number;
   docente?: string;
+  carrera?: string | null;
+  curso?: string | null;
   estudiante_id?: number;
   estudiante?: string;
   calificacion: number;

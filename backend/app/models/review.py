@@ -51,6 +51,8 @@ class Review(BaseModel):
             "id": self.id,
             "docente_id": self.docente_id,
             "docente": self.teacher.nombre_completo if self.teacher else None,
+            "carrera": self.teacher.career.nombre if self.teacher and self.teacher.career else None,
+            "curso": self.teacher.course.nombre if self.teacher and self.teacher.course else None,
             "calificacion": self.calificacion,
             "comentario": self.comentario,
             "fecha": self.fecha.isoformat(),

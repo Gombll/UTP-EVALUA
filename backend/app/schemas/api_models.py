@@ -34,7 +34,6 @@ course_model = api.model(
     {
         "nombre": fields.String(required=True),
         "codigo": fields.String(),
-        "creditos": fields.Integer(),
         "carrera_id": fields.Integer(required=True),
     },
 )
@@ -47,6 +46,7 @@ teacher_model = api.model(
         "correo": fields.String(required=True),
         "facultad_id": fields.Integer(required=True),
         "carrera_id": fields.Integer(required=True),
+        "curso_id": fields.Integer(),
         "fotografia": fields.String(),
     },
 )

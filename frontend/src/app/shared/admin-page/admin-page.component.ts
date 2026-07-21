@@ -145,12 +145,20 @@ export class AdminPageComponent<T extends { id: number }> implements OnInit {
     return Object.fromEntries(
       Object.entries(value).map(([key, raw]) => [
         key,
-        this.isNumericField(key) && raw !== '' ? Number(raw) : raw
+        raw === '' && this.isOptionalSelectField(key)
+          ? null
+          : this.isNumericField(key) && raw !== ''
+            ? Number(raw)
+            : raw
       ])
     );
   }
 
   private isNumericField(key: string): boolean {
     return this.fields.some((field) => field.key === key && field.type === 'number');
+  }
+
+  private isOptionalSelectField(key: string): boolean {
+    return this.fields.some((field) => field.key === key && field.type === 'select' && !field.required);
   }
 }

@@ -1,8 +1,8 @@
 <section class="catalog-page">
   <header class="catalog-hero">
-    <p class="eyebrow">Catálogo UTP</p>
-    <h1>Cursos Académicos y Mallas Curriculares</h1>
-    <p>Explora los cursos por carrera y consulta los docentes que imparten asignaturas afines en la universidad.</p>
+    <p class="eyebrow">Evaluación académica</p>
+    <h1>Cursos para evaluar</h1>
+    <p>Elige una materia, revisa sus docentes asignados y registra tu evaluación con el contexto correcto.</p>
   </header>
 
   <mat-card class="filter-card">
@@ -30,31 +30,41 @@
         </div>
         <div>
           <h2>{{ course.nombre }}</h2>
-          <p><strong>{{ course.codigo }}</strong> • {{ course.carrera }}</p>
+          <p><strong>{{ course.codigo }}</strong> · {{ course.carrera }}</p>
         </div>
         <div class="metric-row">
-          <span><strong>{{ course.creditos }}</strong> créditos</span>
+          <span><strong>{{ course.docentesAsignados }}</strong> docentes asignados</span>
           <span><strong>{{ course.teachersCount }}</strong> docentes de carrera</span>
         </div>
-        <a
-          mat-flat-button
-          color="primary"
-          routerLink="/docentes"
-          [queryParams]="{ carreraId: course.carreraId }"
-        >
-          Ver docentes
-          <mat-icon>arrow_forward</mat-icon>
-        </a>
+        <div class="card-actions">
+          <a
+            mat-flat-button
+            color="primary"
+            routerLink="/resenas"
+            [queryParams]="{ cursoId: course.id }"
+          >
+            Evaluar curso
+            <mat-icon>rate_review</mat-icon>
+          </a>
+          <a
+            mat-stroked-button
+            routerLink="/docentes"
+            [queryParams]="{ carreraId: course.carreraId }"
+          >
+            Ver docentes
+            <mat-icon>groups</mat-icon>
+          </a>
+        </div>
       </mat-card>
     } @empty {
-      <mat-card class="empty-state">No se encontraron cursos académicos con los criterios seleccionados.</mat-card>
+      <mat-card class="empty-state">No se encontraron cursos para evaluar con los criterios seleccionados.</mat-card>
     }
   </section>
 
   @if (auth.isAdmin()) {
     <section class="admin-section">
       <app-admin-page
-        title="Gestión de Cursos y Malla Curricular"
+        title="Gestión de cursos para evaluar"
         [columns]="columns"
         [fields]="fields"
         [service]="service"

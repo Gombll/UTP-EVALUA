@@ -7,11 +7,18 @@ class BaseModel(db.Model):
     __abstract__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        server_default=db.text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
     updated_at = db.Column(
         db.DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
+        server_default=db.text("CURRENT_TIMESTAMP"),
+        server_onupdate=db.text("CURRENT_TIMESTAMP"),
         nullable=False,
     )
 

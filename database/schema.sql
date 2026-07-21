@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS cursos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(140) NOT NULL,
   codigo VARCHAR(40),
-  creditos INT DEFAULT 3,
   carrera_id INT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -49,10 +48,12 @@ CREATE TABLE IF NOT EXISTS docentes (
   fotografia VARCHAR(255),
   facultad_id INT NOT NULL,
   carrera_id INT NOT NULL,
+  curso_id INT,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_docente_facultad FOREIGN KEY (facultad_id) REFERENCES facultades(id),
-  CONSTRAINT fk_docente_carrera FOREIGN KEY (carrera_id) REFERENCES carreras(id)
+  CONSTRAINT fk_docente_carrera FOREIGN KEY (carrera_id) REFERENCES carreras(id),
+  CONSTRAINT fk_docente_curso FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS resenas (

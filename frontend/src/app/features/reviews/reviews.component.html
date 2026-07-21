@@ -57,6 +57,7 @@
           <span>Docente</span>
           <select
             [(ngModel)]="selectedTeacherId"
+            (change)="onTeacherChange()"
             [disabled]="!selectedCareerId || filteredTeachers.length === 0"
             aria-label="Docente asignado"
           >
@@ -72,12 +73,17 @@
 
       <div class="context-card">
         <mat-icon>account_tree</mat-icon>
-        <span>{{ selectedFacultyName() }}</span>
-        <strong>{{ selectedCareerName() }}</strong>
+        <span class="context-item">
+          <span>Docente</span>
+          <strong>{{ selectedTeacherName() }}</strong>
+        </span>
+        <span class="context-item">
+          <span>Carrera</span>
+          <strong>{{ selectedCareerName() }}</strong>
+        </span>
         @if (selectedCourseId) {
           <span class="course-badge"><mat-icon>menu_book</mat-icon> {{ selectedCourseName() }}</span>
         }
-        <span>{{ selectedTeacherName() }}</span>
       </div>
     </header>
 

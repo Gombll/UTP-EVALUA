@@ -34,7 +34,6 @@ def test_courses_crud_operations():
         json={
             "nombre": "Estructuras de Datos y Algoritmos",
             "codigo": "100000I105",
-            "creditos": 4,
             "carrera_id": career_id,
         },
     )

@@ -6,9 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
-import { Career, Faculty, Teacher } from '../../core/models';
+import { Career, Course, Faculty, Teacher } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
-import { CareerService, FacultyService, TeacherService } from '../../core/services/domain.services';
+import { CareerService, CourseService, FacultyService, TeacherService } from '../../core/services/domain.services';
 import { AdminPageComponent, FormField, TableColumn } from '../../shared/admin-page/admin-page.component';
 
 @Component({
@@ -30,10 +30,12 @@ export class TeachersComponent implements OnInit {
   auth = inject(AuthService);
   private readonly facultiesService = inject(FacultyService);
   private readonly careersService = inject(CareerService);
+  private readonly coursesService = inject(CourseService);
 
   teachers: Teacher[] = [];
   faculties: Faculty[] = [];
   careers: Career[] = [];
+  courses: Course[] = [];
   selectedFacultyId: number | '' = '';
   selectedCareerId: number | '' = '';
   searchTerm = '';
@@ -45,6 +47,7 @@ export class TeachersComponent implements OnInit {
     { key: 'correo', label: 'Correo' },
     { key: 'facultad', label: 'Facultad' },
     { key: 'carrera', label: 'Carrera' },
+    { key: 'curso', label: 'Curso' },
     { key: 'promedio', label: 'Promedio' }
   ];
   fields: FormField[] = [
@@ -53,6 +56,7 @@ export class TeachersComponent implements OnInit {
     { key: 'correo', label: 'Correo', type: 'email', required: true },
     { key: 'facultad_id', label: 'Facultad', type: 'select', required: true, options: [] },
     { key: 'carrera_id', label: 'Carrera', type: 'select', required: true, options: [] },
+    { key: 'curso_id', label: 'Curso asignado', type: 'select', options: [] },
     { key: 'fotografia', label: 'URL de fotografía', type: 'text' }
   ];
 
@@ -60,13 +64,16 @@ export class TeachersComponent implements OnInit {
     forkJoin({
       faculties: this.facultiesService.list({ per_page: 100 }),
       careers: this.careersService.list({ per_page: 100 }),
+      courses: this.coursesService.list({ per_page: 100 }),
       teachers: this.service.list({ per_page: 100 })
-    }).subscribe(({ faculties, careers, teachers }) => {
+    }).subscribe(({ faculties, careers, courses, teachers }) => {
       this.faculties = faculties.items;
       this.careers = careers.items;
+      this.courses = courses.items;
       this.teachers = teachers.items;
       this.fields[3].options = this.faculties.map((item) => ({ value: item.id, label: item.nombre }));
       this.fields[4].options = this.careers.map((item) => ({ value: item.id, label: item.nombre }));
+      this.fields[5].options = this.courses.map((item) => ({ value: item.id, label: item.nombre }));
     });
   }
 
@@ -86,7 +93,7 @@ export class TeachersComponent implements OnInit {
         const matchesCareer =
           !this.selectedCareerId || teacher.carrera_id === Number(this.selectedCareerId);
         const haystack = this.normalize(
-          `${teacher.nombres} ${teacher.apellidos} ${teacher.correo} ${teacher.facultad ?? ''} ${teacher.carrera ?? ''}`
+          `${teacher.nombres} ${teacher.apellidos} ${teacher.correo} ${teacher.facultad ?? ''} ${teacher.carrera ?? ''} ${teacher.curso ?? ''}`
         );
         return matchesFaculty && matchesCareer && (!search || haystack.includes(search));
       })

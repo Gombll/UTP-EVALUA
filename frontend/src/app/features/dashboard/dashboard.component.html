@@ -19,10 +19,41 @@
     <p>Ayuda a mejorar la experiencia académica compartiendo evaluaciones responsables y verificables.</p>
   </section>
 
+  <section class="quick-actions" aria-label="Accesos rápidos">
+    <a class="quick-action primary" routerLink="/resenas">
+      <mat-icon>rate_review</mat-icon>
+      <span>
+        <strong>Evaluar ahora</strong>
+        <small>Selecciona curso y docente</small>
+      </span>
+    </a>
+    <a class="quick-action" routerLink="/cursos">
+      <mat-icon>menu_book</mat-icon>
+      <span>
+        <strong>Cursos para evaluar</strong>
+        <small>Materias con docentes asignados</small>
+      </span>
+    </a>
+    <a class="quick-action" routerLink="/docentes">
+      <mat-icon>groups</mat-icon>
+      <span>
+        <strong>Docentes asignados</strong>
+        <small>Consulta profesor y curso</small>
+      </span>
+    </a>
+    <a class="quick-action" routerLink="/reportes">
+      <mat-icon>leaderboard</mat-icon>
+      <span>
+        <strong>Rankings</strong>
+        <small>Revisa tendencias</small>
+      </span>
+    </a>
+  </section>
+
   <mat-card class="finder">
     <div class="finder-title">
       <mat-icon>tune</mat-icon>
-      <strong>Encuentra tu carrera o docente</strong>
+      <strong>Encuentra curso, carrera o docente</strong>
     </div>
     <div class="finder-grid">
       <label>
@@ -53,7 +84,7 @@
       </label>
       <label>
         <span>Buscar</span>
-        <input [(ngModel)]="searchTerm" type="search" placeholder="Busca carreras o docentes">
+        <input [(ngModel)]="searchTerm" type="search" placeholder="Busca cursos, carreras o docentes">
       </label>
       <button class="search-button" type="button" aria-label="Buscar">
         <mat-icon>search</mat-icon>
@@ -63,6 +94,60 @@
 
   <div class="portal-grid">
     <main class="primary-column">
+      <mat-card class="ranking-card course-panel">
+        <header>
+          <h2>Cursos para evaluar</h2>
+          <span>{{ evaluableCourses.length }} cursos sugeridos</span>
+        </header>
+        <div class="course-eval-grid">
+          @for (course of evaluableCourses; track course.id) {
+            <article class="course-eval-card">
+              <div>
+                <span class="course-code">{{ course.code }}</span>
+                <h3>{{ course.name }}</h3>
+                <p>{{ course.career }}</p>
+              </div>
+              <div class="course-eval-footer">
+                <span class="course-meta">Curso</span>
+                <span>{{ course.teacherCount }} docentes</span>
+                <a class="action-link" routerLink="/resenas" [queryParams]="{ cursoId: course.id }">
+                  Evaluar
+                </a>
+              </div>
+            </article>
+          } @empty {
+            <p class="empty-state">No hay cursos disponibles con docentes asignados para los filtros actuales.</p>
+          }
+        </div>
+      </mat-card>
+
+      <mat-card class="ranking-card teacher-course-panel">
+        <header>
+          <h2>Docentes con curso asignado</h2>
+          <span>{{ teacherCourseSummaries.length }} docentes listos</span>
+        </header>
+        <div class="teacher-course-list">
+          @for (teacher of teacherCourseSummaries; track teacher.id) {
+            <article class="teacher-course-row">
+              <span class="teacher-avatar small" aria-hidden="true">
+                <span class="person-mark"></span>
+              </span>
+              <div>
+                <h3>{{ teacher.name }}</h3>
+                <p>{{ teacher.career }}</p>
+                <span class="course-chip">{{ teacher.course }}</span>
+              </div>
+              <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ teacher.rating }}/5</span>
+              <a class="profile-link" routerLink="/resenas" [queryParams]="{ docenteId: teacher.id }">
+                Evaluar
+              </a>
+            </article>
+          } @empty {
+            <p class="empty-state">No hay docentes con curso asignado para los filtros actuales.</p>
+          }
+        </div>
+      </mat-card>
+
       <mat-card class="ranking-card">
         <header>
           <h2>Carreras mejor evaluadas</h2>
@@ -117,6 +202,24 @@
     </main>
 
     <aside class="side-column">
+      <mat-card class="side-card rules-card">
+        <h2>Antes de evaluar</h2>
+        <div class="rules-list">
+          <div>
+            <mat-icon>verified_user</mat-icon>
+            <span>Una reseña por docente</span>
+          </div>
+          <div>
+            <mat-icon>edit_note</mat-icon>
+            <span>Puedes actualizar tu opinión</span>
+          </div>
+          <div>
+            <mat-icon>shield</mat-icon>
+            <span>Evita insultos, enlaces o contenido falso</span>
+          </div>
+        </div>
+      </mat-card>
+
       <mat-card class="side-card">
         <h2>Ranking general UTP</h2>
         <div class="side-section">
@@ -150,7 +253,11 @@
               </div>
               <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ review.rating }}</span>
             </div>
-            <p class="review-meta">{{ review.meta }}</p>
+            <div class="review-meta">
+              <span>Docente: <strong>{{ review.teacher }}</strong></span>
+              <span>Carrera: <strong>{{ review.career }}</strong></span>
+              <span class="course-meta">Curso: <strong>{{ review.course }}</strong></span>
+            </div>
             <p class="quote">“{{ review.text }}”</p>
             <button mat-button type="button" class="report-action" (click)="reportReview(review)">
               <mat-icon>flag</mat-icon>
