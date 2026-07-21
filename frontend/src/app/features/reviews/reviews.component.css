@@ -180,8 +180,12 @@
 }
 
 .stars {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  justify-items: center;
+  width: 100%;
+  margin-top: 14px;
 }
 
 .star-button {
@@ -213,6 +217,8 @@
   color: #6b7280;
   font-family: var(--font-body);
   font-size: 10px;
+  text-align: center;
+  width: 100%;
 }
 
 .comment-card {

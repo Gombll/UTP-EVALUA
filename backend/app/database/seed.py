@@ -27,27 +27,27 @@ def seed_database() -> None:
     _get_or_create(
         Course,
         nombre="Arquitectura y Diseno de Software",
-        defaults={"codigo": "100000I101", "creditos": 4, "carrera_id": software.id},
+        defaults={"codigo": "100000I101", "carrera_id": software.id},
     )
     _get_or_create(
         Course,
         nombre="Pruebas y Calidad de Software",
-        defaults={"codigo": "100000I102", "creditos": 3, "carrera_id": software.id},
+        defaults={"codigo": "100000I102", "carrera_id": software.id},
     )
     _get_or_create(
         Course,
         nombre="Bases de Datos Avanzadas",
-        defaults={"codigo": "100000I201", "creditos": 4, "carrera_id": systems.id},
+        defaults={"codigo": "100000I201", "carrera_id": systems.id},
     )
     _get_or_create(
         Course,
         nombre="Inteligencia de Negocios y Big Data",
-        defaults={"codigo": "100000I202", "creditos": 4, "carrera_id": systems.id},
+        defaults={"codigo": "100000I202", "carrera_id": systems.id},
     )
     _get_or_create(
         Course,
         nombre="Gestion Estrategica y Finanzas",
-        defaults={"codigo": "100000G301", "creditos": 3, "carrera_id": administration.id},
+        defaults={"codigo": "100000G301", "carrera_id": administration.id},
     )
     db.session.flush()
 

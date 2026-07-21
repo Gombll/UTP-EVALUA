@@ -16,9 +16,9 @@ interface CourseCard {
   id: number;
   nombre: string;
   codigo: string;
-  creditos: number;
   carrera: string;
   carreraId: number;
+  docentesAsignados: number;
   teachersCount: number;
 }
 
@@ -53,13 +53,11 @@ export class CoursesComponent implements OnInit {
     { key: 'id', label: 'ID' },
     { key: 'codigo', label: 'Código' },
     { key: 'nombre', label: 'Nombre' },
-    { key: 'creditos', label: 'Créditos' },
     { key: 'carrera', label: 'Carrera' }
   ];
   fields: FormField[] = [
     { key: 'codigo', label: 'Código de curso', type: 'text', required: false },
     { key: 'nombre', label: 'Nombre del curso', type: 'text', required: true },
-    { key: 'creditos', label: 'Créditos académicos', type: 'number', required: true },
     { key: 'carrera_id', label: 'Carrera', type: 'select', required: true, options: [] }
   ];
 
@@ -72,7 +70,7 @@ export class CoursesComponent implements OnInit {
       this.careers = careers.items;
       this.courses = courses.items;
       this.teachers = teachers.items;
-      this.fields[3].options = this.careers.map((item) => ({
+      this.fields[2].options = this.careers.map((item) => ({
         value: item.id,
         label: item.nombre
       }));
@@ -89,14 +87,15 @@ export class CoursesComponent implements OnInit {
         return matchesCareer && (!search || haystack.includes(search));
       })
       .map((course) => {
+        const courseTeachers = this.teachers.filter((t) => t.curso_id === course.id);
         const careerTeachers = this.teachers.filter((t) => t.carrera_id === course.carrera_id);
         return {
           id: course.id,
           nombre: course.nombre,
           codigo: course.codigo ?? 'SIN-COD',
-          creditos: course.creditos ?? 3,
           carrera: course.carrera ?? 'Sin carrera asignada',
           carreraId: course.carrera_id,
+          docentesAsignados: courseTeachers.length,
           teachersCount: careerTeachers.length
         };
       })

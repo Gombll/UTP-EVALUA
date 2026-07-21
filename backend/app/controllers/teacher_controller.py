@@ -20,6 +20,7 @@ class TeacherListResource(Resource):
         return service.list(
             facultad_id=request.args.get("facultad_id"),
             carrera_id=request.args.get("carrera_id"),
+            curso_id=request.args.get("curso_id"),
             **args,
         )
 

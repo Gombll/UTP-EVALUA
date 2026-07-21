@@ -9,7 +9,7 @@ class TeacherService(BaseService):
 
     def list(self, **kwargs) -> dict:
         filters = kwargs.pop("filters", {})
-        for key in ["facultad_id", "carrera_id"]:
+        for key in ["facultad_id", "carrera_id", "curso_id"]:
             if key in kwargs:
                 filters[key] = kwargs.pop(key)
         return super().list(filters=filters, **kwargs)

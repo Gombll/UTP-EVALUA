@@ -97,7 +97,16 @@ export class ReviewsComponent implements OnInit {
     if (!this.selectedCareerId) {
       return [];
     }
-    return this.courses.filter((course) => course.carrera_id === Number(this.selectedCareerId));
+
+    const coursesByCareer = this.courses.filter(
+      (course) => course.carrera_id === Number(this.selectedCareerId)
+    );
+    const teacher = this.selectedTeacher();
+    if (!teacher?.curso_id) {
+      return coursesByCareer;
+    }
+
+    return coursesByCareer.filter((course) => course.id === teacher.curso_id);
   }
 
   get filteredTeachers(): Teacher[] {
@@ -107,7 +116,8 @@ export class ReviewsComponent implements OnInit {
     return this.teacherOptions.filter(
       (teacher) =>
         teacher.carrera_id === Number(this.selectedCareerId) &&
-        (!this.selectedFacultyId || teacher.facultad_id === Number(this.selectedFacultyId))
+        (!this.selectedFacultyId || teacher.facultad_id === Number(this.selectedFacultyId)) &&
+        (!this.selectedCourseId || teacher.curso_id === Number(this.selectedCourseId))
     );
   }
 
@@ -121,11 +131,23 @@ export class ReviewsComponent implements OnInit {
     const career = this.careers.find((item) => item.id === Number(this.selectedCareerId));
     this.selectedFacultyId = career?.facultad_id ?? this.selectedFacultyId;
     this.selectedCourseId = '';
-    this.selectedTeacherId = this.filteredTeachers[0]?.id ?? '';
+    this.selectedTeacherId = '';
   }
 
   onCourseChange(): void {
-    // El estudiante vinculó un curso a su evaluación docente
+    this.selectedTeacherId = this.filteredTeachers[0]?.id ?? '';
+  }
+
+  onTeacherChange(): void {
+    const teacher = this.selectedTeacher();
+    if (!teacher) {
+      this.selectedCourseId = '';
+      return;
+    }
+
+    this.selectedFacultyId = teacher.facultad_id;
+    this.selectedCareerId = teacher.carrera_id;
+    this.selectedCourseId = teacher.curso_id ?? '';
   }
 
   setRating(questionId: string, value: number): void {
@@ -188,7 +210,7 @@ export class ReviewsComponent implements OnInit {
   }
 
   selectedTeacherName(): string {
-    const teacher = this.teacherOptions.find((item) => item.id === Number(this.selectedTeacherId));
+    const teacher = this.selectedTeacher();
     return teacher ? `${teacher.nombres} ${teacher.apellidos}` : 'Selecciona un docente';
   }
 
@@ -219,6 +241,7 @@ export class ReviewsComponent implements OnInit {
       this.selectedTeacherId = teacher?.id ?? '';
       this.selectedCareerId = teacher?.carrera_id ?? '';
       this.selectedFacultyId = teacher?.facultad_id ?? '';
+      this.selectedCourseId = teacher?.curso_id ?? '';
       return;
     }
 
@@ -226,7 +249,7 @@ export class ReviewsComponent implements OnInit {
       const career = this.careers.find((item) => item.id === careerId);
       this.selectedCareerId = career?.id ?? '';
       this.selectedFacultyId = career?.facultad_id ?? '';
-      this.selectedTeacherId = this.filteredTeachers[0]?.id ?? '';
+      this.selectedTeacherId = '';
       return;
     }
 
@@ -235,6 +258,10 @@ export class ReviewsComponent implements OnInit {
     );
     this.selectedCareerId = firstCareerWithTeacher?.id ?? '';
     this.selectedFacultyId = firstCareerWithTeacher?.facultad_id ?? '';
-    this.selectedTeacherId = this.filteredTeachers[0]?.id ?? '';
+    this.selectedTeacherId = '';
+  }
+
+  private selectedTeacher(): Teacher | undefined {
+    return this.teacherOptions.find((item) => item.id === Number(this.selectedTeacherId));
   }
 }

@@ -27,6 +27,9 @@
                 <mat-label>{{ field.label }}</mat-label>
                 @if (field.type === 'select') {
                   <mat-select [formControlName]="field.key">
+                    @if (!field.required) {
+                      <mat-option [value]="''">Sin asignar</mat-option>
+                    }
                     @for (option of field.options ?? []; track option.value) {
                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
                     }
