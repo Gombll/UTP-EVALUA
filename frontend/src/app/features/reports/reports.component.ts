@@ -72,8 +72,26 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly resizeHandler = () => this.resizeCharts();
 
   auth = inject(AuthService);
-  excelUrl = this.service.excelUrl();
-  csvUrl = this.service.csvUrl();
+  exportExcel(): void {
+    this.service.downloadExcel().subscribe({
+      next: (blob) => this.downloadBlob(blob, 'ranking_docentes.xlsx')
+    });
+  }
+
+  exportCsv(): void {
+    this.service.downloadCsv().subscribe({
+      next: (blob) => this.downloadBlob(blob, 'ranking_docentes.csv')
+    });
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
   adminData: AdminDataBlock[] = [];
   chartPanels: ChartPanel[] = [];
   kpis: DataEntry[] = [];

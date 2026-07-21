@@ -88,12 +88,12 @@ export class ReportService {
     return this.http.get<Record<string, unknown>>(`${this.apiUrl}/graficos-data`);
   }
 
-  excelUrl(): string {
-    return `${this.apiUrl}/excel`;
+  downloadExcel(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/excel`, { responseType: 'blob' });
   }
 
-  csvUrl(): string {
-    return `${this.apiUrl}/csv`;
+  downloadCsv(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/csv`, { responseType: 'blob' });
   }
 }
 
