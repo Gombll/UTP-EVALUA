@@ -5,14 +5,14 @@
     <p>Explora resultados agregados de evaluations anonimas y detecta referentes academicos.</p>
     @if (auth.isAdmin()) {
       <div class="export-actions">
-        <a mat-flat-button color="primary" [href]="excelUrl">
+        <button mat-flat-button color="primary" type="button" (click)="exportExcel()">
           <mat-icon>download</mat-icon>
           Exportar Excel
-        </a>
-        <a mat-stroked-button color="primary" [href]="csvUrl">
+        </button>
+        <button mat-stroked-button color="primary" type="button" (click)="exportCsv()">
           <mat-icon>table_chart</mat-icon>
           Exportar CSV
-        </a>
+        </button>
       </div>
     }
   </header>
