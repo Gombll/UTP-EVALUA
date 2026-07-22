@@ -28,10 +28,14 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearSession();
+    this.router.navigateByUrl('/login');
+  }
+
+  clearSession(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUser.set(null);
-    this.router.navigateByUrl('/login');
   }
 
   token(): string | null {
@@ -39,7 +43,7 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return Boolean(this.token());
+    return Boolean(this.token() && this.currentUser());
   }
 
   isAdmin(): boolean {
