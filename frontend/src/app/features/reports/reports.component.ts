@@ -9,14 +9,21 @@ import {
   ViewChildren,
   inject
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import * as echarts from 'echarts';
 import type { ECharts, EChartsOption } from 'echarts';
 
+import { Teacher } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
-import { RecommendationService, ReportService } from '../../core/services/domain.services';
+import {
+  DashboardService,
+  RecommendationService,
+  ReportService,
+  TeacherService
+} from '../../core/services/domain.services';
 
 interface AdminDataBlock {
   title: string;
@@ -34,6 +41,8 @@ interface ChartPanel {
   subtitle: string;
   type: string;
   option: EChartsOption;
+  limitKey?: string;
+  limitValue?: number;
 }
 
 interface MetricRecord {
@@ -58,7 +67,7 @@ type ChartDataPayload = Record<string, unknown>;
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css'
 })
@@ -67,6 +76,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly service = inject(ReportService);
   private readonly recommendationService = inject(RecommendationService);
+  private readonly dashboardService = inject(DashboardService);
+  private readonly teacherService = inject(TeacherService);
   private readonly chartInstances = new Map<string, ECharts>();
   private viewReady = false;
   private readonly resizeHandler = () => this.resizeCharts();
@@ -95,6 +106,13 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   adminData: AdminDataBlock[] = [];
   chartPanels: ChartPanel[] = [];
   kpis: DataEntry[] = [];
+  rawChartData: ChartDataPayload | null = null;
+  chartLimitOptions = [5, 10, 20, 50, 100];
+  chartLimits: Record<string, number> = {
+    'ranking-docentes': 10,
+    'promedio-carreras': 10,
+    'promedio-facultades': 10
+  };
 
   teachers = [
     { name: 'Dr. Alejandro Ruiz', career: 'Ingenieria de Sistemas', rating: 4.9, reviews: 15 },
@@ -117,10 +135,34 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    if (!this.auth.isAdmin()) {
+    if (this.auth.isAdmin()) {
+      this.loadAdminReports();
+    } else {
+      this.loadStudentReports();
+    }
+  }
+
+  onChartLimitChange(): void {
+    if (!this.rawChartData) {
       return;
     }
+    this.chartPanels = this.buildChartPanels(this.rawChartData);
+    queueMicrotask(() => this.renderCharts());
+  }
 
+  chartLimit(limitKey: string | undefined): number {
+    return limitKey ? this.chartLimits[limitKey] ?? 10 : 10;
+  }
+
+  setChartLimit(limitKey: string | undefined, value: number): void {
+    if (!limitKey) {
+      return;
+    }
+    this.chartLimits[limitKey] = Number(value);
+    this.onChartLimitChange();
+  }
+
+  private loadAdminReports(): void {
     this.service.chartData().subscribe({
       next: (data) => this.loadChartData(data),
       error: () => undefined
@@ -139,6 +181,28 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private loadStudentReports(): void {
+    this.teacherService.list({ per_page: 100 }).subscribe({
+      next: (teachersPage) => {
+        const teachers = teachersPage.items;
+        this.updateStudentRankings(teachers);
+        this.chartPanels = this.buildStudentChartPanels(teachers);
+        queueMicrotask(() => this.renderCharts());
+      },
+      error: () => undefined
+    });
+
+    this.dashboardService.getSummary().subscribe({
+      next: (summary) => {
+        const top = summary.top_docentes ?? [];
+        if (top.length > 0) {
+          this.updateStudentRankings(top);
+        }
+      },
+      error: () => undefined
+    });
+  }
+
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.chartHosts.changes.subscribe(() => this.renderCharts());
@@ -153,6 +217,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadChartData(data: ChartDataPayload): void {
+    this.rawChartData = data;
     this.kpis = this.objectEntries(data['kpis']);
     this.chartPanels = this.buildChartPanels(data);
     this.updateVisibleRankings(data);
@@ -183,9 +248,9 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private buildChartPanels(data: ChartDataPayload): ChartPanel[] {
-    const teachers = this.records(data['ranking_docentes']);
-    const careers = this.records(data['promedio_carreras']);
-    const faculties = this.records(data['promedio_facultades']);
+    const teachers = this.limitedRecords(data['ranking_docentes'], 'ranking-docentes');
+    const careers = this.limitedRecords(data['promedio_carreras'], 'promedio-carreras');
+    const faculties = this.limitedRecords(data['promedio_facultades'], 'promedio-facultades');
     const ratings = this.records(data['distribucion_calificaciones']);
     const statuses = this.records(data['estado_resenas']);
     const monthly = this.records(data['resenas_por_mes']);
@@ -198,6 +263,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         title: 'Ranking completo de docentes',
         subtitle: 'Incluye docentes con 0 resenas visibles para no ocultar vacios de datos.',
         type: 'Barras',
+        limitKey: 'ranking-docentes',
+        limitValue: this.chartLimits['ranking-docentes'],
         option: this.horizontalBarOption(
           teachers.map((item) => this.name(item)),
           teachers.map((item) => this.numberValue(item['promedio'])),
@@ -211,6 +278,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         title: 'Promedio por carrera',
         subtitle: 'Todas las carreras registradas, incluso sin resenas.',
         type: 'Barras',
+        limitKey: 'promedio-carreras',
+        limitValue: this.chartLimits['promedio-carreras'],
         option: this.horizontalBarOption(
           careers.map((item) => this.name(item)),
           careers.map((item) => this.numberValue(item['promedio'])),
@@ -224,6 +293,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         title: 'Promedio por facultad',
         subtitle: 'Resumen agregado con cobertura de resenas visibles.',
         type: 'Barras',
+        limitKey: 'promedio-facultades',
+        limitValue: this.chartLimits['promedio-facultades'],
         option: this.horizontalBarOption(
           faculties.map((item) => this.name(item)),
           faculties.map((item) => this.numberValue(item['promedio'])),
@@ -273,6 +344,116 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         option: this.coverageOption(teacherCoverage, careerCoverage)
       }
     ];
+  }
+
+  private buildStudentChartPanels(teachers: Teacher[]): ChartPanel[] {
+    const rankedTeachers = teachers
+      .map((teacher) => ({
+        nombre: `${teacher.nombres} ${teacher.apellidos}`,
+        promedio: teacher.promedio ?? 0,
+        resenas: teacher.resenas ?? 0
+      }))
+      .sort((a, b) => b.promedio - a.promedio || b.resenas - a.resenas)
+      .slice(0, 8);
+
+    const careerMap = new Map<string, { nombre: string; total: number; resenas: number }>();
+    teachers.forEach((teacher) => {
+      const career = teacher.carrera ?? 'Sin carrera';
+      const current = careerMap.get(career) ?? { nombre: career, total: 0, resenas: 0 };
+      const reviews = teacher.resenas ?? 0;
+      current.total += (teacher.promedio ?? 0) * reviews;
+      current.resenas += reviews;
+      careerMap.set(career, current);
+    });
+
+    const careers = Array.from(careerMap.values())
+      .map((career) => ({
+        nombre: career.nombre,
+        promedio: career.resenas ? Number((career.total / career.resenas).toFixed(2)) : 0,
+        resenas: career.resenas
+      }))
+      .sort((a, b) => b.promedio - a.promedio || b.resenas - a.resenas)
+      .slice(0, 6);
+
+    const distribution = [1, 2, 3, 4, 5].map((rating) => ({
+      name: `${rating}/5`,
+      value: teachers.filter((teacher) => Math.round(teacher.promedio ?? 0) === rating).length
+    }));
+
+    return [
+      {
+        id: 'student-docentes',
+        title: 'Docentes mejor evaluados',
+        subtitle: 'Vista resumida para orientar tu evaluacion.',
+        type: 'Barras',
+        option: this.horizontalBarOption(
+          rankedTeachers.map((item) => item.nombre),
+          rankedTeachers.map((item) => item.promedio),
+          rankedTeachers.map((item) => item.resenas),
+          '#c9003f',
+          'Promedio'
+        )
+      },
+      {
+        id: 'student-carreras',
+        title: 'Promedio por carrera',
+        subtitle: 'Resumen general sin datos tecnicos de administracion.',
+        type: 'Barras',
+        option: this.horizontalBarOption(
+          careers.map((item) => item.nombre),
+          careers.map((item) => item.promedio),
+          careers.map((item) => item.resenas),
+          '#0f6b7a',
+          'Promedio'
+        )
+      },
+      {
+        id: 'student-distribucion',
+        title: 'Distribucion general',
+        subtitle: 'Agrupacion simple de promedios docentes.',
+        type: 'Donut',
+        option: this.donutOption(distribution, ['#8f002d', '#c9003f', '#f4a51c', '#15754d', '#0f6b7a'])
+      }
+    ];
+  }
+
+  private updateStudentRankings(teachers: Teacher[]): void {
+    const ranked = teachers
+      .map((teacher) => ({
+        name: `${teacher.nombres} ${teacher.apellidos}`,
+        career: teacher.carrera ?? teacher.facultad ?? 'Sin carrera asignada',
+        rating: Number((teacher.promedio ?? 0).toFixed(1)),
+        reviews: teacher.resenas ?? 0
+      }))
+      .sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
+
+    this.teachers = ranked.slice(0, 4);
+
+    const careerMap = new Map<string, { name: string; faculty: string; total: number; reviews: number }>();
+    teachers.forEach((teacher) => {
+      const name = teacher.carrera ?? 'Sin carrera';
+      const current =
+        careerMap.get(name) ?? {
+          name,
+          faculty: teacher.facultad ?? 'Sin facultad',
+          total: 0,
+          reviews: 0
+        };
+      const reviews = teacher.resenas ?? 0;
+      current.total += (teacher.promedio ?? 0) * reviews;
+      current.reviews += reviews;
+      careerMap.set(name, current);
+    });
+
+    this.careers = Array.from(careerMap.values())
+      .map((career) => ({
+        name: career.name,
+        faculty: career.faculty,
+        rating: career.reviews ? Number((career.total / career.reviews).toFixed(1)) : 0,
+        reviews: career.reviews
+      }))
+      .sort((a, b) => b.rating - a.rating || b.reviews - a.reviews)
+      .slice(0, 4);
   }
 
   private renderCharts(): void {
@@ -532,6 +713,11 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.isArray(value)
       ? value.filter((item): item is MetricRecord => this.isObject(item))
       : [];
+  }
+
+  private limitedRecords(value: unknown, limitKey: string): MetricRecord[] {
+    const limit = this.chartLimits[limitKey] ?? 10;
+    return this.records(value).slice(0, limit);
   }
 
   private numberValue(value: unknown): number {

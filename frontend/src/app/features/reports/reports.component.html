@@ -76,47 +76,68 @@
     </mat-card>
   </div>
 
-  @if (auth.isAdmin() && (adminData.length > 0 || chartPanels.length > 0)) {
-    <div class="admin-data-container">
-      <h2>Datos tecnicos para administradores</h2>
-      @if (chartPanels.length > 0) {
-        <mat-card class="charts-panel">
-          <div class="charts-header">
-            <div>
-              <h3>Graficos interactivos</h3>
-              <p>Datos completos para administracion: incluye ceros, estados de moderacion y cobertura.</p>
-            </div>
-            <span>{{ chartPanels.length }} graficos</span>
-          </div>
+  @if (chartPanels.length > 0) {
+    <mat-card class="charts-panel" [class.student-charts]="!auth.isAdmin()">
+      <div class="charts-header">
+        <div>
+          <h3>{{ auth.isAdmin() ? 'Graficos interactivos' : 'Resumen visual' }}</h3>
+          <p>
+            {{
+              auth.isAdmin()
+                ? 'Datos completos para administracion: incluye ceros, estados de moderacion y cobertura.'
+                : 'Indicadores generales para explorar docentes y carreras antes de evaluar.'
+            }}
+          </p>
+        </div>
+        <span>{{ chartPanels.length }} graficos</span>
+      </div>
 
-          @if (kpis.length > 0) {
-            <div class="kpi-grid">
-              @for (kpi of kpis; track kpi.key) {
-                <div class="kpi-card">
-                  <small>{{ kpi.key }}</small>
-                  <strong>{{ displayValue(kpi.value) }}</strong>
-                </div>
-              }
+      @if (auth.isAdmin() && kpis.length > 0) {
+        <div class="kpi-grid">
+          @for (kpi of kpis; track kpi.key) {
+            <div class="kpi-card">
+              <small>{{ kpi.key }}</small>
+              <strong>{{ displayValue(kpi.value) }}</strong>
             </div>
           }
-
-          <div class="charts-grid">
-            @for (chart of chartPanels; track chart.id) {
-              <article class="chart-card">
-                <div class="chart-card-head">
-                  <div>
-                    <h4>{{ chart.title }}</h4>
-                    <p>{{ chart.subtitle }}</p>
-                  </div>
-                  <span>{{ chart.type }}</span>
-                </div>
-                <div class="echart-host" #chartHost></div>
-              </article>
-            }
-          </div>
-        </mat-card>
+        </div>
       }
 
+      <div class="charts-grid">
+        @for (chart of chartPanels; track chart.id) {
+          <article class="chart-card">
+            <div class="chart-card-head">
+              <div>
+                <h4>{{ chart.title }}</h4>
+                <p>{{ chart.subtitle }}</p>
+              </div>
+              <div class="chart-tools">
+                @if (auth.isAdmin() && chart.limitKey) {
+                  <label>
+                    <span>Mostrar</span>
+                    <select
+                      [ngModel]="chartLimit(chart.limitKey)"
+                      (ngModelChange)="setChartLimit(chart.limitKey, $event)"
+                    >
+                      @for (option of chartLimitOptions; track option) {
+                        <option [ngValue]="option">{{ option }}</option>
+                      }
+                    </select>
+                  </label>
+                }
+                <span>{{ chart.type }}</span>
+              </div>
+            </div>
+            <div class="echart-host" #chartHost></div>
+          </article>
+        }
+      </div>
+    </mat-card>
+  }
+
+  @if (auth.isAdmin() && adminData.length > 0) {
+    <div class="admin-data-container">
+      <h2>Datos tecnicos para administradores</h2>
       <div class="admin-grid">
         @for (item of adminData; track item.title) {
           <mat-card class="admin-panel">
