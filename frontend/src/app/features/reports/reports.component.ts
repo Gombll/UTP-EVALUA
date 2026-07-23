@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import * as echarts from 'echarts';
 import type { ECharts, EChartsOption } from 'echarts';
 
@@ -64,10 +65,24 @@ interface MetricRecord {
 
 type ChartDataPayload = Record<string, unknown>;
 
+interface RankingTeacher {
+  name: string;
+  career: string;
+  rating: number;
+  reviews: number;
+}
+
+interface RankingCareer {
+  name: string;
+  faculty: string;
+  rating: number;
+  reviews: number;
+}
+
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule, MatSnackBarModule],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css'
 })
@@ -78,6 +93,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly recommendationService = inject(RecommendationService);
   private readonly dashboardService = inject(DashboardService);
   private readonly teacherService = inject(TeacherService);
+  private readonly snack = inject(MatSnackBar);
   private readonly chartInstances = new Map<string, ECharts>();
   private viewReady = false;
   private readonly resizeHandler = () => this.resizeCharts();
@@ -85,13 +101,15 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   auth = inject(AuthService);
   exportExcel(): void {
     this.service.downloadExcel().subscribe({
-      next: (blob) => this.downloadBlob(blob, 'ranking_docentes.xlsx')
+      next: (blob) => this.downloadBlob(blob, 'ranking_docentes.xlsx'),
+      error: () => this.snack.open('No se pudo exportar el archivo Excel.', 'Cerrar', { duration: 3200 })
     });
   }
 
   exportCsv(): void {
     this.service.downloadCsv().subscribe({
-      next: (blob) => this.downloadBlob(blob, 'ranking_docentes.csv')
+      next: (blob) => this.downloadBlob(blob, 'ranking_docentes.csv'),
+      error: () => this.snack.open('No se pudo exportar el archivo CSV.', 'Cerrar', { duration: 3200 })
     });
   }
 
@@ -106,6 +124,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   adminData: AdminDataBlock[] = [];
   chartPanels: ChartPanel[] = [];
   kpis: DataEntry[] = [];
+  reportWarnings: string[] = [];
   rawChartData: ChartDataPayload | null = null;
   chartLimitOptions = [5, 10, 20, 50, 100];
   chartLimits: Record<string, number> = {
@@ -114,25 +133,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     'promedio-facultades': 10
   };
 
-  teachers = [
-    { name: 'Dr. Alejandro Ruiz', career: 'Ingenieria de Sistemas', rating: 4.9, reviews: 15 },
-    { name: 'Msc. Laura Torres', career: 'Ingenieria de Software', rating: 4.8, reviews: 10 },
-    { name: 'Ing. Pedro Gomez', career: 'Marketing', rating: 4.6, reviews: 15 },
-    { name: 'Dra. Sofia Morales', career: 'Ingenieria Industrial', rating: 4.5, reviews: 5 }
-  ];
-  careers = [
-    { name: 'Ingenieria de Sistemas', faculty: 'Ingenieria', rating: 4.9, reviews: 15 },
-    { name: 'Ingenieria de Software', faculty: 'Ingenieria', rating: 4.8, reviews: 10 },
-    { name: 'Marketing', faculty: 'Gestion y Negocios', rating: 4.6, reviews: 5 },
-    { name: 'Ingenieria Industrial', faculty: 'Ingenieria', rating: 4.5, reviews: 3 }
-  ];
-  criteria = [
-    'Claridad y dominio del tema',
-    'Utilidad del material de apoyo',
-    'Actividades practicas',
-    'Organizacion y logistica',
-    'Logro de objetivos'
-  ];
+  teachers: RankingTeacher[] = [];
+  careers: RankingCareer[] = [];
 
   ngOnInit(): void {
     if (this.auth.isAdmin()) {
@@ -165,19 +167,19 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadAdminReports(): void {
     this.service.chartData().subscribe({
       next: (data) => this.loadChartData(data),
-      error: () => undefined
+      error: () => this.addReportWarning('No se pudieron cargar los datos de gráficos.')
     });
     this.recommendationService.recommendations().subscribe({
       next: (data) => this.appendAdminPayload('Recomendaciones AI', data),
-      error: () => undefined
+      error: () => this.addReportWarning('No se pudieron cargar las recomendaciones.')
     });
     this.service.analytics().subscribe({
       next: (data) => this.appendAdminPayload('Analytics General', data),
-      error: () => undefined
+      error: () => this.addReportWarning('No se pudieron cargar las métricas de analytics.')
     });
     this.service.prolog().subscribe({
       next: (data) => this.appendAdminPayload('Prolog Engine (Inferencia)', data),
-      error: () => undefined
+      error: () => this.addReportWarning('No se pudieron cargar las inferencias Prolog.')
     });
   }
 
@@ -189,7 +191,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.chartPanels = this.buildStudentChartPanels(teachers);
         queueMicrotask(() => this.renderCharts());
       },
-      error: () => undefined
+      error: () => this.addReportWarning('No se pudieron cargar los rankings para estudiantes.')
     });
 
     this.dashboardService.getSummary().subscribe({
@@ -199,7 +201,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
           this.updateStudentRankings(top);
         }
       },
-      error: () => undefined
+      error: () => this.addReportWarning('No se pudo cargar el resumen principal.')
     });
   }
 
@@ -261,7 +263,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       {
         id: 'ranking-docentes',
         title: 'Ranking completo de docentes',
-        subtitle: 'Incluye docentes con 0 resenas visibles para no ocultar vacios de datos.',
+        subtitle: 'Incluye docentes con 0 reseñas visibles para no ocultar vacíos de datos.',
         type: 'Barras',
         limitKey: 'ranking-docentes',
         limitValue: this.chartLimits['ranking-docentes'],
@@ -276,7 +278,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       {
         id: 'promedio-carreras',
         title: 'Promedio por carrera',
-        subtitle: 'Todas las carreras registradas, incluso sin resenas.',
+        subtitle: 'Todas las carreras registradas, incluso sin reseñas.',
         type: 'Barras',
         limitKey: 'promedio-carreras',
         limitValue: this.chartLimits['promedio-carreras'],
@@ -291,7 +293,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       {
         id: 'promedio-facultades',
         title: 'Promedio por facultad',
-        subtitle: 'Resumen agregado con cobertura de resenas visibles.',
+        subtitle: 'Resumen agregado con cobertura de reseñas visibles.',
         type: 'Barras',
         limitKey: 'promedio-facultades',
         limitValue: this.chartLimits['promedio-facultades'],
@@ -305,15 +307,15 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         id: 'resenas-mes',
-        title: 'Evolucion mensual por estado',
-        subtitle: 'Ultimos 6 meses, rellenando meses sin actividad con cero.',
-        type: 'Lineas',
+        title: 'Evolución mensual por estado',
+        subtitle: 'Últimos 6 meses, rellenando meses sin actividad con cero.',
+        type: 'Líneas',
         option: this.monthlyOption(monthly)
       },
       {
         id: 'distribucion-notas',
-        title: 'Distribucion de calificaciones',
-        subtitle: 'Notas visibles de 1 a 5, incluyendo categorias sin registros.',
+        title: 'Distribución de calificaciones',
+        subtitle: 'Notas visibles de 1 a 5, incluyendo categorías sin registros.',
         type: 'Donut',
         option: this.donutOption(
           ratings.map((item) => ({
@@ -325,8 +327,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         id: 'estado-resenas',
-        title: 'Estado de resenas',
-        subtitle: 'Control de moderacion: visibles, reportadas y ocultas.',
+        title: 'Estado de reseñas',
+        subtitle: 'Control de moderación: visibles, reportadas y ocultas.',
         type: 'Donut',
         option: this.donutOption(
           statuses.map((item) => ({
@@ -338,8 +340,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         id: 'cobertura',
-        title: 'Cobertura de evaluations',
-        subtitle: 'Detecta docentes y carreras sin resenas visibles.',
+        title: 'Cobertura de reseñas',
+        subtitle: 'Detecta docentes y carreras sin reseñas visibles.',
         type: 'Barras agrupadas',
         option: this.coverageOption(teacherCoverage, careerCoverage)
       }
@@ -384,7 +386,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       {
         id: 'student-docentes',
         title: 'Docentes mejor evaluados',
-        subtitle: 'Vista resumida para orientar tu evaluacion.',
+        subtitle: 'Vista resumida para orientar tu evaluación.',
         type: 'Barras',
         option: this.horizontalBarOption(
           rankedTeachers.map((item) => item.nombre),
@@ -397,7 +399,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       {
         id: 'student-carreras',
         title: 'Promedio por carrera',
-        subtitle: 'Resumen general sin datos tecnicos de administracion.',
+        subtitle: 'Resumen general sin datos técnicos de administración.',
         type: 'Barras',
         option: this.horizontalBarOption(
           careers.map((item) => item.nombre),
@@ -409,8 +411,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         id: 'student-distribucion',
-        title: 'Distribucion general',
-        subtitle: 'Agrupacion simple de promedios docentes.',
+        title: 'Distribución general',
+        subtitle: 'Agrupación simple de promedios docentes.',
         type: 'Donut',
         option: this.donutOption(distribution, ['#8f002d', '#c9003f', '#f4a51c', '#15754d', '#0f6b7a'])
       }
@@ -501,7 +503,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         formatter: (params) => {
           const item = Array.isArray(params) ? params[0] : params;
           const index = Number(item.dataIndex ?? 0);
-          return `<strong>${labels[index]}</strong><br>${metric}: ${values[index].toFixed(2)}/5<br>Resenas visibles: ${reviewCounts[index]}`;
+          return `<strong>${labels[index]}</strong><br>${metric}: ${values[index].toFixed(2)}/5<br>Reseñas visibles: ${reviewCounts[index]}`;
         }
       },
       grid: { left: 170, right: 42, top: 24, bottom: 42 },
@@ -604,22 +606,22 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       series: [
         {
-          name: 'Con resenas',
+          name: 'Con reseñas',
           type: 'bar',
           data: [
-            this.coverageValue(teacherCoverage, 'Con resenas'),
-            this.coverageValue(careerCoverage, 'Con resenas')
+            this.coverageValue(teacherCoverage, 'Con reseñas'),
+            this.coverageValue(careerCoverage, 'Con reseñas')
           ],
           barWidth: 28,
           itemStyle: { borderRadius: [8, 8, 0, 0] },
           label: { show: true, position: 'top', fontWeight: 700 }
         },
         {
-          name: 'Sin resenas',
+          name: 'Sin reseñas',
           type: 'bar',
           data: [
-            this.coverageValue(teacherCoverage, 'Sin resenas'),
-            this.coverageValue(careerCoverage, 'Sin resenas')
+            this.coverageValue(teacherCoverage, 'Sin reseñas'),
+            this.coverageValue(careerCoverage, 'Sin reseñas')
           ],
           barWidth: 28,
           itemStyle: { borderRadius: [8, 8, 0, 0] },
@@ -630,11 +632,20 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private coverageValue(rows: MetricRecord[], label: string): number {
-    return this.numberValue(rows.find((item) => this.label(item) === label)?.['cantidad']);
+    const expected = this.normalizeLabel(label);
+    return this.numberValue(
+      rows.find((item) => this.normalizeLabel(this.label(item)) === expected)?.['cantidad']
+    );
   }
 
   private appendAdminPayload(title: string, data: Record<string, unknown>): void {
     this.adminData.push({ title, data });
+  }
+
+  private addReportWarning(message: string): void {
+    if (!this.reportWarnings.includes(message)) {
+      this.reportWarnings.push(message);
+    }
   }
 
   isArray(val: unknown): boolean {
@@ -731,5 +742,13 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private label(item: MetricRecord): string {
     return this.displayValue(item['label'] ?? item['estado']);
+  }
+
+  private normalizeLabel(value: string): string {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 }

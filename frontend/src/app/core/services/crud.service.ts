@@ -1,6 +1,7 @@
 ﻿import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { ApiPage } from '../models';
 
 export interface QueryOptions {
@@ -13,7 +14,7 @@ export interface QueryOptions {
 }
 
 export class CrudService<T> {
-  protected readonly apiUrl = 'http://localhost:5000/api';
+  protected readonly apiUrl = environment.apiUrl;
 
   constructor(
     protected readonly http: HttpClient,

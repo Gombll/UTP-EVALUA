@@ -7,8 +7,8 @@
 
   <mat-card class="evaluation-card">
     <header class="evaluation-header">
-      <h1>Evaluación de {{ selectedCareerName() }}</h1>
-      <p>Tus respuestas son anónimas y ayudan a mejorar la experiencia académica.</p>
+      <h1>Evaluación docente</h1>
+      <p>Selecciona el docente y usa carrera/curso como contexto para que la reseña sea precisa.</p>
 
       <section class="selection-panel" aria-label="Selección académica para evaluar">
         <label>
@@ -37,14 +37,14 @@
         </label>
 
         <label>
-          <span>Curso (Materia dictada)</span>
+          <span>Curso asociado</span>
           <select
             [(ngModel)]="selectedCourseId"
             (change)="onCourseChange()"
             [disabled]="!selectedCareerId"
             aria-label="Curso o materia"
           >
-            <option [ngValue]="''">Curso general / opcional</option>
+            <option [ngValue]="''">Sin curso específico</option>
             @for (course of filteredCourses; track course.id) {
               <option [ngValue]="course.id">
                 {{ course.nombre }} {{ course.codigo ? '(' + course.codigo + ')' : '' }}
@@ -120,12 +120,18 @@
     </div>
 
     <section class="comment-card">
-      <h2>Comentarios adicionales o sugerencias</h2>
+      <h2>Comentario de la reseña</h2>
       <textarea
         [(ngModel)]="comment"
         rows="4"
-        placeholder="Escribe aquí tu opinión sobre la carrera, la materia y el docente."
+        [attr.minlength]="minCommentLength"
+        [attr.maxlength]="maxCommentLength"
+        placeholder="Describe tu experiencia con el docente. Evita insultos, enlaces, texto repetido o contenido vacío."
       ></textarea>
+      <div class="comment-meta" [class.invalid]="commentLength() > 0 && !isCommentValid()">
+        <span>{{ commentError() }}</span>
+        <strong>{{ commentLength() }}/{{ maxCommentLength }}</strong>
+      </div>
     </section>
 
     <footer class="actions">
@@ -135,16 +141,11 @@
         color="primary"
         type="button"
         (click)="submit()"
-        [disabled]="!selectedFacultyId || !selectedCareerId || !selectedTeacherId"
+        [disabled]="submitting || !selectedFacultyId || !selectedCareerId || !selectedTeacherId || !isCommentValid()"
       >
-        Enviar evaluación
+        {{ submitting ? 'Enviando...' : 'Enviar evaluación' }}
         <mat-icon>send</mat-icon>
       </button>
     </footer>
   </mat-card>
-
-  <footer class="page-footer">
-    <img class="footer-logo" src="assets/utp-logo.svg" alt="UTP">
-    <small>2026 UTP Evalúa. Desarrollado para la comunidad estudiantil de UTP.</small>
-  </footer>
 </section>

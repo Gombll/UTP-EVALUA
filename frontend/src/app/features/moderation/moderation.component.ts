@@ -66,9 +66,15 @@ export class ModerationComponent implements OnInit {
   }
 
   approve(review: Review): void {
-    this.reviews.moderate(review.id, 'aprobar').subscribe(() => {
-      this.snack.open('Reseña aprobada y publicada.', 'Cerrar', { duration: 2600 });
-      this.load();
+    this.reviews.moderate(review.id, 'aprobar').subscribe({
+      next: () => {
+        this.snack.open('Reseña aprobada y publicada.', 'Cerrar', { duration: 2600 });
+        this.load();
+      },
+      error: (error) => {
+        const message = error?.error?.message ?? 'No se pudo aprobar la reseña.';
+        this.snack.open(message, 'Cerrar', { duration: 3400 });
+      }
     });
   }
 
@@ -92,9 +98,15 @@ export class ModerationComponent implements OnInit {
         if (!motivo) {
           return;
         }
-        this.reviews.moderate(review.id, 'ocultar', String(motivo)).subscribe(() => {
-          this.snack.open('Reseña ocultada correctamente.', 'Cerrar', { duration: 2600 });
-          this.load();
+        this.reviews.moderate(review.id, 'ocultar', String(motivo)).subscribe({
+          next: () => {
+            this.snack.open('Reseña ocultada correctamente.', 'Cerrar', { duration: 2600 });
+            this.load();
+          },
+          error: (error) => {
+            const message = error?.error?.message ?? 'No se pudo ocultar la reseña.';
+            this.snack.open(message, 'Cerrar', { duration: 3400 });
+          }
         });
       });
   }

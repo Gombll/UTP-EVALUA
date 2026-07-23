@@ -174,7 +174,7 @@
 
 .finder-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(150px, 1fr)) minmax(180px, 1fr) 180px;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
   gap: 14px;
   align-items: end;
 }
@@ -205,21 +205,6 @@ select:focus,
 input:focus {
   border-color: var(--utp-primary);
   outline: 2px solid rgba(179, 0, 50, 0.12);
-}
-
-.search-button {
-  display: grid;
-  height: 38px;
-  place-items: center;
-  background: var(--utp-primary);
-  color: #ffffff;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.search-button mat-icon {
-  color: #ffffff;
 }
 
 .portal-grid {
@@ -344,7 +329,7 @@ header span {
 
 .teacher-course-row {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) max-content max-content;
+  grid-template-columns: 34px minmax(0, 1fr) max-content minmax(190px, max-content);
   align-items: center;
   gap: 12px;
   min-height: 74px;
@@ -535,6 +520,24 @@ h3 {
   background: #ffffff;
   color: var(--utp-jet);
   border: 1px solid #dfe3e7;
+}
+
+.teacher-inline-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacher-inline-actions .profile-link {
+  min-width: 92px;
+}
+
+.teacher-inline-actions .primary-link {
+  background: var(--utp-primary);
+  color: #ffffff;
+  border-color: var(--utp-primary);
 }
 
 .info-mark {
@@ -751,7 +754,7 @@ h3 {
 
   .teacher-row .teacher-avatar,
   .teacher-course-row .rating,
-  .teacher-course-row .profile-link,
+  .teacher-course-row .teacher-inline-actions,
   .rank-row .rating,
   .rank-row .action-link,
   .rank-row .profile-link {

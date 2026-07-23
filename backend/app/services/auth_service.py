@@ -3,7 +3,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from app.models import Role, User
 from app.repositories import UserRepository
-from app.utils.validators import require_fields, validate_email, validate_password, validate_person_name
+from app.utils.validators import require_fields, validate_email, validate_password, validate_person_name, validate_utp_email
 
 
 class AuthService:
@@ -13,7 +13,7 @@ class AuthService:
     def register(self, data: dict) -> dict:
         require_fields(data, ["nombres", "correo", "password"])
         nombres = validate_person_name(data["nombres"])
-        correo = validate_email(data["correo"])
+        correo = validate_utp_email(data["correo"])
         validate_password(data["password"])
         if self.users.find_by_email(correo):
             raise BadRequest("El correo ya está registrado.")

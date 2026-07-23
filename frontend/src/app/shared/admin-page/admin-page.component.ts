@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +23,10 @@ export interface FormField {
   label: string;
   type: 'text' | 'email' | 'password' | 'number' | 'textarea' | 'select';
   required?: boolean;
+  requiredOnCreate?: boolean;
+  hint?: string;
+  pattern?: RegExp;
+  patternError?: string;
   options?: { value: string | number; label: string }[];
 }
 
@@ -73,16 +77,22 @@ export class AdminPageComponent<T extends { id: number }> implements OnInit {
     ];
     const group: Record<string, unknown[]> = {};
     this.fields.forEach((field) => {
-      group[field.key] = ['', field.required ? Validators.required : []];
+      group[field.key] = [''];
     });
     this.form = this.fb.group(group);
+    this.refreshValidators();
     this.load();
   }
 
   load(): void {
     this.service
       .list({ ...this.fixedQuery, search: this.search, per_page: 50 })
-      .subscribe((page) => (this.rows = page.items));
+      .subscribe({
+        next: (page) => (this.rows = page.items),
+        error: () => {
+          this.snack.open('No se pudieron cargar los registros.', 'Cerrar', { duration: 3200 });
+        }
+      });
   }
 
   submit(): void {
@@ -96,16 +106,24 @@ export class AdminPageComponent<T extends { id: number }> implements OnInit {
       ? this.service.update(this.editing.id, payload as Partial<T>)
       : this.service.create(payload as Partial<T>);
 
-    request.subscribe(() => {
-      this.snack.open('Cambios guardados correctamente.', 'Cerrar', { duration: 2600 });
-      this.reset();
-      this.load();
+    request.subscribe({
+      next: () => {
+        this.snack.open('Cambios guardados correctamente.', 'Cerrar', { duration: 2600 });
+        this.reset();
+        this.load();
+      },
+      error: (error) => {
+        const message = error?.error?.message ?? 'No se pudo guardar el registro.';
+        this.snack.open(message, 'Cerrar', { duration: 3600 });
+      }
     });
   }
 
   edit(row: T): void {
     this.editing = row;
+    this.form.reset();
     this.form.patchValue(row as Record<string, unknown>);
+    this.refreshValidators();
   }
 
   remove(row: T): void {
@@ -125,9 +143,15 @@ export class AdminPageComponent<T extends { id: number }> implements OnInit {
         if (!confirmed) {
           return;
         }
-        this.service.delete(row.id).subscribe(() => {
-          this.snack.open('Registro eliminado correctamente.', 'Cerrar', { duration: 2600 });
-          this.load();
+        this.service.delete(row.id).subscribe({
+          next: () => {
+            this.snack.open('Registro eliminado correctamente.', 'Cerrar', { duration: 2600 });
+            this.load();
+          },
+          error: (error) => {
+            const message = error?.error?.message ?? 'No se pudo eliminar el registro.';
+            this.snack.open(message, 'Cerrar', { duration: 3600 });
+          }
         });
       });
   }
@@ -135,6 +159,7 @@ export class AdminPageComponent<T extends { id: number }> implements OnInit {
   reset(): void {
     this.editing = null;
     this.form.reset();
+    this.refreshValidators();
   }
 
   rowValue(row: T, key: string): unknown {
@@ -143,15 +168,46 @@ export class AdminPageComponent<T extends { id: number }> implements OnInit {
 
   private normalizePayload(value: Record<string, unknown>): Record<string, unknown> {
     return Object.fromEntries(
-      Object.entries(value).map(([key, raw]) => [
-        key,
-        raw === '' && this.isOptionalSelectField(key)
-          ? null
-          : this.isNumericField(key) && raw !== ''
-            ? Number(raw)
-            : raw
-      ])
+      Object.entries(value)
+        .map(([key, raw]) => [
+          key,
+          raw === '' && !this.isRequiredForSubmit(key)
+            ? this.isOptionalSelectField(key)
+              ? null
+              : undefined
+            : this.isNumericField(key) && raw !== ''
+              ? Number(raw)
+              : raw
+        ])
+        .filter(([, normalized]) => normalized !== undefined)
     );
+  }
+
+  private refreshValidators(): void {
+    this.fields.forEach((field) => {
+      const control = this.form.controls[field.key];
+      if (!control) {
+        return;
+      }
+      control.setValidators(this.validatorsFor(field));
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  private validatorsFor(field: FormField): ValidatorFn[] {
+    return [
+      ...(this.isRequiredField(field) ? [Validators.required] : []),
+      ...(field.pattern ? [Validators.pattern(field.pattern)] : [])
+    ];
+  }
+
+  private isRequiredField(field: FormField): boolean {
+    return Boolean(field.required || (field.requiredOnCreate && !this.editing));
+  }
+
+  private isRequiredForSubmit(key: string): boolean {
+    const field = this.fields.find((item) => item.key === key);
+    return field ? this.isRequiredField(field) : false;
   }
 
   private isNumericField(key: string): boolean {

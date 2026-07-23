@@ -75,20 +75,9 @@
         </select>
       </label>
       <label>
-        <span>Semestre</span>
-        <select>
-          <option>Cualquier semestre</option>
-          <option>2026-I</option>
-          <option>2026-II</option>
-        </select>
-      </label>
-      <label>
         <span>Buscar</span>
         <input [(ngModel)]="searchTerm" type="search" placeholder="Busca cursos, carreras o docentes">
       </label>
-      <button class="search-button" type="button" aria-label="Buscar">
-        <mat-icon>search</mat-icon>
-      </button>
     </div>
   </mat-card>
 
@@ -138,9 +127,14 @@
                 <span class="course-chip">{{ teacher.course }}</span>
               </div>
               <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ teacher.rating }}/5</span>
-              <a class="profile-link" routerLink="/resenas" [queryParams]="{ docenteId: teacher.id }">
-                Evaluar
-              </a>
+              <div class="teacher-inline-actions">
+                <a class="profile-link primary-link" routerLink="/resenas" [queryParams]="{ docenteId: teacher.id }">
+                  Evaluar
+                </a>
+                <a class="profile-link" routerLink="/docentes" [queryParams]="{ resenasDocenteId: teacher.id }">
+                  Ver reseñas
+                </a>
+              </div>
             </article>
           } @empty {
             <p class="empty-state">No hay docentes con curso asignado para los filtros actuales.</p>
@@ -163,7 +157,7 @@
               </div>
               <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ career.rating }}/5</span>
               <a class="action-link" routerLink="/resenas" [queryParams]="{ carreraId: career.id }">
-                Evaluar carrera
+                Evaluar docente
               </a>
             </article>
           } @empty {
@@ -186,11 +180,11 @@
               </span>
               <div>
                 <h3>{{ teacher.name }}</h3>
-                <p>{{ teacher.area }} | {{ teacher.reviews }} evaluaciones</p>
+                <p>{{ teacher.area }} | {{ teacher.reviews }} reseñas</p>
               </div>
               <span class="rating"><span class="rating-star" aria-hidden="true">★</span>{{ teacher.rating }}/5</span>
-              <a class="profile-link" routerLink="/docentes">
-                Ver perfil
+              <a class="profile-link" routerLink="/docentes" [queryParams]="{ resenasDocenteId: teacher.id }">
+                Ver reseñas
                 <span class="info-mark" aria-hidden="true">i</span>
               </a>
             </article>

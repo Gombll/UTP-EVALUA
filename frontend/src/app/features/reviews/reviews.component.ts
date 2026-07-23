@@ -54,6 +54,9 @@ export class ReviewsComponent implements OnInit {
   selectedCourseId: number | '' = '';
   selectedTeacherId: number | '' = '';
   comment = '';
+  submitting = false;
+  readonly minCommentLength = 20;
+  readonly maxCommentLength = 500;
 
   readonly scale = ['Insatisfactorio', 'Regular', 'Satisfecho', 'Muy satisfecho', 'Excelente'];
   readonly questions: EvaluationQuestion[] = [
@@ -64,7 +67,7 @@ export class ReviewsComponent implements OnInit {
     { id: 'objetivos', label: 'Logro de los objetivos académicos' }
   ];
   ratings: Record<string, number> = {
-    claridad: 4,
+    claridad: 0,
     material: 0,
     practicas: 0,
     organizacion: 0,
@@ -155,6 +158,10 @@ export class ReviewsComponent implements OnInit {
   }
 
   submit(): void {
+    if (this.submitting) {
+      return;
+    }
+
     const ratingValues = Object.values(this.ratings).filter((value) => value > 0);
     if (!this.selectedFacultyId || !this.selectedCareerId || !this.selectedTeacherId) {
       this.snack.open('Selecciona facultad, carrera y docente antes de evaluar.', 'Cerrar', {
@@ -168,23 +175,30 @@ export class ReviewsComponent implements OnInit {
       return;
     }
 
+    if (!this.isCommentValid()) {
+      this.snack.open(this.commentError(), 'Cerrar', { duration: 3200 });
+      return;
+    }
+
     const average = Math.round(
       ratingValues.reduce((total, value) => total + value, 0) / ratingValues.length
     );
 
     const course = this.courses.find((item) => item.id === Number(this.selectedCourseId));
     const coursePrefix = course ? `[Curso: ${course.nombre}] ` : '';
-    const finalComment = `${coursePrefix}${this.comment || 'Evaluación del docente registrada.'}`;
 
+    this.submitting = true;
     this.reviews
       .create({
         docente_id: Number(this.selectedTeacherId),
         calificacion: average,
-        comentario: finalComment
+        comentario: `${coursePrefix}${this.comment.trim()}`
       })
       .subscribe({
         next: () => {
           this.comment = '';
+          this.resetRatings();
+          this.submitting = false;
           this.router.navigate(['/dashboard'], {
             state: {
               reviewSuccess: true,
@@ -193,10 +207,31 @@ export class ReviewsComponent implements OnInit {
           });
         },
         error: (error) => {
+          this.submitting = false;
           const message = error?.error?.message ?? 'No se pudo enviar la evaluación.';
           this.snack.open(message, 'Cerrar', { duration: 3400 });
         }
       });
+  }
+
+  commentLength(): number {
+    return this.comment.trim().length;
+  }
+
+  isCommentValid(): boolean {
+    const length = this.commentLength();
+    return length >= this.minCommentLength && length <= this.maxCommentLength;
+  }
+
+  commentError(): string {
+    const length = this.commentLength();
+    if (length < this.minCommentLength) {
+      return `Escribe un comentario de al menos ${this.minCommentLength} caracteres.`;
+    }
+    if (length > this.maxCommentLength) {
+      return `El comentario no debe superar ${this.maxCommentLength} caracteres.`;
+    }
+    return 'Revisa el comentario antes de enviar.';
   }
 
   selectedCareerName(): string {
@@ -263,5 +298,15 @@ export class ReviewsComponent implements OnInit {
 
   private selectedTeacher(): Teacher | undefined {
     return this.teacherOptions.find((item) => item.id === Number(this.selectedTeacherId));
+  }
+
+  private resetRatings(): void {
+    this.ratings = {
+      claridad: 0,
+      material: 0,
+      practicas: 0,
+      organizacion: 0,
+      objetivos: 0
+    };
   }
 }

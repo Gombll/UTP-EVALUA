@@ -3,11 +3,12 @@ import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { AuthResponse, User } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:5000/api/auth';
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
   private readonly tokenKey = 'utp_evalua_token';
   private readonly userKey = 'utp_evalua_user';
 
@@ -59,6 +60,16 @@ export class AuthService {
 
   private readUser(): User | null {
     const raw = localStorage.getItem(this.userKey);
-    return raw ? (JSON.parse(raw) as User) : null;
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw) as User;
+    } catch {
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.userKey);
+      return null;
+    }
   }
 }
