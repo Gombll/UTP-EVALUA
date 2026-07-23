@@ -26,6 +26,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "optimization": {
                 "styles": {
                   "inlineCritical": false
@@ -50,7 +56,7 @@
               "buildTarget": "utp-evalua-frontend:build:production"
             },
             "development": {
-              "buildTarget": "utp-evalua-frontend:build"
+              "buildTarget": "utp-evalua-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"

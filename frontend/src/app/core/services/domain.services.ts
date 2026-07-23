@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { Career, Course, Dashboard, Faculty, Review, Teacher, User } from '../models';
 import { CrudService } from './crud.service';
 
@@ -57,7 +58,7 @@ export class ReviewService extends CrudService<Review> {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly apiUrl = 'http://localhost:5000/api/dashboard';
+  private readonly apiUrl = `${environment.apiUrl}/dashboard`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -68,7 +69,7 @@ export class DashboardService {
 
 @Injectable({ providedIn: 'root' })
 export class ReportService {
-  private readonly apiUrl = 'http://localhost:5000/api/reportes';
+  private readonly apiUrl = `${environment.apiUrl}/reportes`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -99,7 +100,7 @@ export class ReportService {
 
 @Injectable({ providedIn: 'root' })
 export class RecommendationService {
-  private readonly apiUrl = 'http://localhost:5000/api/recomendaciones';
+  private readonly apiUrl = `${environment.apiUrl}/recomendaciones`;
 
   constructor(private readonly http: HttpClient) {}
 

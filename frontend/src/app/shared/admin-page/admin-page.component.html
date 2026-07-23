@@ -39,6 +39,15 @@
                 } @else {
                   <input matInput [type]="field.type" [formControlName]="field.key" />
                 }
+                @if (field.hint) {
+                  <mat-hint>{{ field.hint }}</mat-hint>
+                }
+                @if (form.controls[field.key].touched && form.controls[field.key].hasError('required')) {
+                  <mat-error>{{ field.label }} es obligatorio.</mat-error>
+                }
+                @if (form.controls[field.key].touched && form.controls[field.key].hasError('pattern')) {
+                  <mat-error>{{ field.patternError ?? 'El formato ingresado no es valido.' }}</mat-error>
+                }
               </mat-form-field>
             }
             <div class="actions">

@@ -31,11 +31,12 @@ export class LoginComponent {
   private readonly router = inject(Router);
   private readonly snack = inject(MatSnackBar);
   private readonly passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  private readonly institutionalEmailPattern = /^[a-z0-9._%+-]+@utp\.edu\.pe$/i;
 
   mode = signal<'login' | 'register'>('login');
   form = this.fb.nonNullable.group({
     nombres: ['', [Validators.minLength(3), Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/)]],
-    correo: ['', [Validators.required, Validators.email]],
+    correo: ['', [Validators.required, Validators.email, Validators.pattern(this.institutionalEmailPattern)]],
     password: ['', [Validators.required, Validators.pattern(this.passwordPattern)]]
   });
 
@@ -76,6 +77,10 @@ export class LoginComponent {
       number: /\d/.test(password)
     };
     return checks[rule];
+  }
+
+  institutionalEmailMet(): boolean {
+    return this.institutionalEmailPattern.test(this.form.controls.correo.value);
   }
 }
 

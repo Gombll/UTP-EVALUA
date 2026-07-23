@@ -40,12 +40,15 @@
           <mat-form-field appearance="outline">
             <mat-label>Correo electrónico</mat-label>
             <input matInput type="email" formControlName="correo" autocomplete="email">
-            <mat-hint>Ejemplo: nombre.apellido@utp.edu.pe</mat-hint>
+            <mat-hint>Usa tu correo institucional: ejemplo@utp.edu.pe</mat-hint>
             @if (form.controls.correo.touched && form.controls.correo.hasError('required')) {
               <mat-error>El correo es obligatorio.</mat-error>
             }
             @if (form.controls.correo.touched && form.controls.correo.hasError('email')) {
               <mat-error>Ingresa un correo válido.</mat-error>
+            }
+            @if (form.controls.correo.touched && form.controls.correo.hasError('pattern')) {
+              <mat-error>Solo se permiten correos institucionales @utp.edu.pe.</mat-error>
             }
           </mat-form-field>
 
@@ -73,8 +76,8 @@
                 <li [class.met]="form.controls.nombres.valid && !!form.controls.nombres.value.trim()">
                   Nombre completo, sin números ni símbolos.
                 </li>
-                <li [class.met]="form.controls.correo.valid">
-                  Correo electrónico con formato válido.
+                <li [class.met]="institutionalEmailMet()">
+                  Correo institucional con formato ejemplo@utp.edu.pe.
                 </li>
                 <li [class.met]="passwordRuleMet('length')">
                   Contraseña de al menos 8 caracteres.

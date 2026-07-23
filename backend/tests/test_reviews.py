@@ -11,7 +11,7 @@ def _auth_headers(client, correo: str, password: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def _register_student(client, correo: str = "nuevo@test.com") -> dict:
+def _register_student(client, correo: str = "nuevo@utp.edu.pe") -> dict:
     response = client.post(
         "/api/auth/register",
         json={"nombres": "Nuevo Alumno", "correo": correo, "password": "Secret123*"},
@@ -46,7 +46,7 @@ def test_duplicate_review_updates_existing_review():
     )
 
     with app.app_context():
-        student = User.query.filter_by(correo="nuevo@test.com").first()
+        student = User.query.filter_by(correo="nuevo@utp.edu.pe").first()
         reviews = Review.query.filter_by(docente_id=1, estudiante_id=student.id).all()
 
     assert first.status_code == 201

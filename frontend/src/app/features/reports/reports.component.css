@@ -408,6 +408,44 @@ pre {
   font-weight: 800;
 }
 
+.empty-ranking {
+  padding: 18px 0 4px;
+  color: var(--utp-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.warning-panel {
+  display: grid;
+  gap: 10px;
+  padding: 18px 22px;
+  border-color: #f4d38a !important;
+  background: #fff9eb !important;
+}
+
+.warning-panel h2 {
+  color: var(--utp-warning);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.warning-panel p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--utp-jet);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.warning-panel mat-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--utp-warning);
+  font-size: 18px;
+}
+
 .chart-tools > span {
   flex: 0 0 auto;
   padding: 4px 8px;

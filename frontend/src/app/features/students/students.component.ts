@@ -29,7 +29,21 @@ export class StudentsComponent {
   ];
   fields: FormField[] = [
     { key: 'nombres', label: 'Nombres', type: 'text', required: true },
-    { key: 'correo', label: 'Correo', type: 'email', required: true },
-    { key: 'password', label: 'Contraseña', type: 'password', required: true }
+    {
+      key: 'correo',
+      label: 'Correo',
+      type: 'email',
+      required: true,
+      hint: 'Formato institucional: ejemplo@utp.edu.pe',
+      pattern: /^[a-z0-9._%+-]+@utp\.edu\.pe$/i,
+      patternError: 'Solo se permiten correos institucionales @utp.edu.pe.'
+    },
+    {
+      key: 'password',
+      label: 'Contraseña',
+      type: 'password',
+      requiredOnCreate: true,
+      hint: 'Obligatoria al crear. Déjala vacía al editar si no deseas cambiarla.'
+    }
   ];
 }

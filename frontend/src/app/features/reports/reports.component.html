@@ -1,8 +1,8 @@
 <section class="rankings-page">
   <header class="page-hero">
     <p class="eyebrow">Rankings UTP</p>
-    <h1>Desempeno docente y carreras mejor evaluadas</h1>
-    <p>Explora resultados agregados de evaluations anonimas y detecta referentes academicos.</p>
+    <h1>Desempeño docente y carreras mejor evaluadas</h1>
+    <p>Explora resultados agregados de reseñas anónimas y detecta referentes académicos.</p>
     @if (auth.isAdmin()) {
       <div class="export-actions">
         <button mat-flat-button color="primary" type="button" (click)="exportExcel()">
@@ -25,10 +25,12 @@
           <span class="rank">{{ index + 1 }}</span>
           <div>
             <h3>{{ teacher.name }}</h3>
-            <p>{{ teacher.career }} | {{ teacher.reviews }} evaluations</p>
+            <p>{{ teacher.career }} | {{ teacher.reviews }} reseñas</p>
           </div>
           <span class="score"><mat-icon>star</mat-icon>{{ teacher.rating }}/5</span>
         </article>
+      } @empty {
+        <p class="empty-ranking">Aún no hay docentes con datos suficientes para mostrar.</p>
       }
     </mat-card>
 
@@ -39,57 +41,39 @@
           <span class="rank">{{ index + 1 }}</span>
           <div>
             <h3>{{ career.name }}</h3>
-            <p>{{ career.faculty }} | {{ career.reviews }} resenas</p>
+            <p>{{ career.faculty }} | {{ career.reviews }} reseñas</p>
           </div>
           <span class="score"><mat-icon>star</mat-icon>{{ career.rating }}/5</span>
         </article>
+      } @empty {
+        <p class="empty-ranking">Aún no hay carreras con datos suficientes para mostrar.</p>
       }
     </mat-card>
   </div>
 
-  <div class="insights-grid">
-    <mat-card class="insight-card">
-      <h2>Desglose de desempeno</h2>
-      @for (item of criteria; track item; let index = $index) {
-        <div class="bar-row">
-          <span>{{ index + 1 }}. {{ item }}</span>
-          <div class="bar"><i [style.width.%]="index === 4 ? 80 : 100"></i></div>
-          <strong>{{ index === 4 ? '4.0' : '5.0' }}</strong>
-        </div>
+  @if (reportWarnings.length > 0) {
+    <mat-card class="warning-panel">
+      <h2>Fuentes pendientes</h2>
+      @for (warning of reportWarnings; track warning) {
+        <p><mat-icon>info</mat-icon>{{ warning }}</p>
       }
     </mat-card>
-
-    <mat-card class="insight-card">
-      <h2>Comentarios de estudiantes</h2>
-      <article class="comment">
-        <div class="comment-head">
-          <span>J</span>
-          <div>
-            <strong>Juan Perez</strong>
-            <small>13 de enero de 2026</small>
-          </div>
-          <em><mat-icon>star</mat-icon>4.8</em>
-        </div>
-        <p><strong>Carrera: Ingenieria de Sistemas</strong></p>
-        <blockquote>Excelente docente, explica los conceptos con claridad y mantiene apertura para resolver dudas.</blockquote>
-      </article>
-    </mat-card>
-  </div>
+  }
 
   @if (chartPanels.length > 0) {
     <mat-card class="charts-panel" [class.student-charts]="!auth.isAdmin()">
       <div class="charts-header">
         <div>
-          <h3>{{ auth.isAdmin() ? 'Graficos interactivos' : 'Resumen visual' }}</h3>
+          <h3>{{ auth.isAdmin() ? 'Gráficos interactivos' : 'Resumen visual' }}</h3>
           <p>
             {{
               auth.isAdmin()
-                ? 'Datos completos para administracion: incluye ceros, estados de moderacion y cobertura.'
+                ? 'Datos completos para administración: incluye ceros, estados de moderación y cobertura.'
                 : 'Indicadores generales para explorar docentes y carreras antes de evaluar.'
             }}
           </p>
         </div>
-        <span>{{ chartPanels.length }} graficos</span>
+        <span>{{ chartPanels.length }} gráficos</span>
       </div>
 
       @if (auth.isAdmin() && kpis.length > 0) {
@@ -137,7 +121,7 @@
 
   @if (auth.isAdmin() && adminData.length > 0) {
     <div class="admin-data-container">
-      <h2>Datos tecnicos para administradores</h2>
+      <h2>Datos técnicos para administradores</h2>
       <div class="admin-grid">
         @for (item of adminData; track item.title) {
           <mat-card class="admin-panel">

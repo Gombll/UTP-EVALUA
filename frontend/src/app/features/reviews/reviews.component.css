@@ -246,6 +246,24 @@ textarea:focus {
   outline: 2px solid rgba(179, 0, 50, 0.12);
 }
 
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--utp-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.comment-meta.invalid {
+  color: var(--utp-error);
+}
+
+.comment-meta strong {
+  flex: 0 0 auto;
+  color: inherit;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -259,25 +277,6 @@ textarea:focus {
   margin-left: 4px;
   color: #ffffff;
   font-size: 18px;
-}
-
-.page-footer {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  margin-top: 64px;
-  padding: 34px 0 0;
-  color: var(--utp-secondary);
-  border-top: 1px solid var(--line);
-  font-family: var(--font-body);
-  font-size: 12px;
-}
-
-.footer-logo {
-  display: block;
-  width: 112px;
-  height: 30px;
-  object-fit: contain;
 }
 
 @media (max-width: 900px) {

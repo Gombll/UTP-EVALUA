@@ -32,6 +32,123 @@
     </label>
   </mat-card>
 
+  @if (selectedReviewTeacher) {
+    <mat-card class="reviews-panel">
+      <header class="reviews-panel-head">
+        <div class="review-teacher-title">
+          <p class="eyebrow">Reseñas personales</p>
+          <h2>{{ selectedReviewTeacher.nombres }} {{ selectedReviewTeacher.apellidos }}</h2>
+          <span>
+            {{ selectedReviewTeacher.carrera ?? 'Sin carrera' }}
+            @if (selectedReviewTeacher.curso) {
+              · {{ selectedReviewTeacher.curso }}
+            }
+          </span>
+        </div>
+
+        <div class="review-panel-actions">
+          <a
+            mat-flat-button
+            color="primary"
+            routerLink="/resenas"
+            [queryParams]="{ docenteId: selectedReviewTeacher.id }"
+          >
+            Evaluar docente
+            <mat-icon>send</mat-icon>
+          </a>
+          <button mat-icon-button type="button" aria-label="Cerrar reseñas" (click)="closeReviews()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </header>
+
+      <section class="reviews-summary" aria-label="Resumen de reseñas del docente">
+        <div class="summary-card primary-summary">
+          <small>Promedio visible</small>
+          <strong>{{ reviewAverage }}/5</strong>
+        </div>
+        <div class="summary-card">
+          <small>Reseñas visibles</small>
+          <strong>{{ teacherReviews.length }}</strong>
+        </div>
+        <div class="summary-card">
+          <small>Curso asociado</small>
+          <strong>{{ selectedReviewTeacher.curso ?? 'Sin curso' }}</strong>
+        </div>
+      </section>
+
+      @if (!reviewsLoading && teacherReviews.length > 0) {
+        <section class="reviews-tools" aria-label="Filtros de reseñas">
+          <label>
+            <span>Calificación</span>
+            <select [(ngModel)]="reviewRatingFilter">
+              <option [ngValue]="''">Todas</option>
+              @for (rating of [5, 4, 3, 2, 1]; track rating) {
+                <option [ngValue]="rating">{{ rating }}/5</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span>Ordenar</span>
+            <select [(ngModel)]="reviewSort">
+              <option value="recent">Más recientes</option>
+              <option value="highest">Mayor calificación</option>
+              <option value="lowest">Menor calificación</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="rating-breakdown" aria-label="Distribución de calificaciones">
+          @for (item of reviewDistribution; track item.rating) {
+            <div class="breakdown-row">
+              <span>{{ item.rating }}/5</span>
+              <div class="breakdown-bar"><i [style.width.%]="item.percent"></i></div>
+              <strong>{{ item.count }}</strong>
+            </div>
+          }
+        </section>
+      }
+
+      @if (reviewsLoading) {
+        <p class="reviews-state">Cargando reseñas del docente...</p>
+      } @else if (reviewsError) {
+        <p class="reviews-state error-state">{{ reviewsError }}</p>
+      } @else if (teacherReviews.length === 0) {
+        <p class="reviews-state">Este docente todavía no tiene reseñas visibles.</p>
+      } @else if (visibleTeacherReviews.length === 0) {
+        <p class="reviews-state">No hay reseñas con la calificación seleccionada.</p>
+      } @else {
+        <div class="reviews-list">
+          @for (review of visibleTeacherReviews; track review.id) {
+            <article class="review-card">
+              <div class="review-meta">
+                <span class="review-rating"><mat-icon>star</mat-icon>{{ review.calificacion }}/5</span>
+                <span>{{ reviewDate(review.fecha) }}</span>
+                @if (reviewCourse(review)) {
+                  <span class="review-course"><mat-icon>menu_book</mat-icon>{{ reviewCourse(review) }}</span>
+                }
+              </div>
+              @if (review.carrera) {
+                <p class="review-career">{{ review.carrera }}</p>
+              }
+              <p class="review-comment">“{{ cleanReviewText(review.comentario) }}”</p>
+              <button
+                mat-button
+                type="button"
+                class="report-review"
+                [disabled]="reportedReviewIds.has(review.id)"
+                (click)="reportReview(review)"
+              >
+                <mat-icon>flag</mat-icon>
+                {{ reportedReviewIds.has(review.id) ? 'Reportada' : 'Reportar' }}
+              </button>
+            </article>
+          }
+        </div>
+      }
+    </mat-card>
+  }
+
   <section class="teacher-grid">
     @for (teacher of filteredTeachers; track teacher.id) {
       <mat-card class="teacher-card">
@@ -51,15 +168,21 @@
           <span class="rating"><mat-icon>star</mat-icon>{{ teacher.promedio ?? 0 }}/5</span>
           <span>{{ teacher.resenas ?? 0 }} reseñas</span>
         </div>
-        <a
-          mat-flat-button
-          color="primary"
-          routerLink="/resenas"
-          [queryParams]="{ docenteId: teacher.id }"
-        >
-          Evaluar docente
-          <mat-icon>send</mat-icon>
-        </a>
+        <div class="teacher-actions">
+          <a
+            mat-flat-button
+            color="primary"
+            routerLink="/resenas"
+            [queryParams]="{ docenteId: teacher.id }"
+          >
+            Evaluar docente
+            <mat-icon>send</mat-icon>
+          </a>
+          <button mat-stroked-button color="primary" type="button" (click)="showReviews(teacher)">
+            Ver reseñas
+            <mat-icon>rate_review</mat-icon>
+          </button>
+        </div>
       </mat-card>
     } @empty {
       <mat-card class="empty-state">No hay docentes para los filtros seleccionados.</mat-card>

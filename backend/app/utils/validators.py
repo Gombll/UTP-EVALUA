@@ -16,6 +16,13 @@ def validate_email(value: str) -> str:
     return email
 
 
+def validate_utp_email(value: str) -> str:
+    email = validate_email(value)
+    if not re.match(r"^[a-z0-9._%+-]+@utp\.edu\.pe$", email):
+        raise BadRequest("Debes usar tu correo institucional UTP con formato ejemplo@utp.edu.pe.")
+    return email
+
+
 def validate_person_name(value: str) -> str:
     name = re.sub(r"\s+", " ", (value or "").strip())
     if len(name) < 3:
